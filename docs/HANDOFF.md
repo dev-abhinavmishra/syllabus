@@ -65,3 +65,19 @@ CourseView is now the course's own syllabus document (masthead, double rules,
 § sections, ruled schedule table, print view); SemesterView shows issued
 syllabus covers dealt onto the desk; Today desk is the agenda page with
 ¶-numbered items. Institutional paperwork only — Ink owns the notebook look.
+
+## Spec compliance audit (Oct 11, vs the pasted spec)
+- MVP: fully built + merged (courses, commitments, today desk, assessment plan,
+  calendar week/month/agenda, effort calibration, local-first + JSON restore).
+- V1: course templates ✓, recurring commitments ✓, dependency chains ✓
+  (picker + -80 blocked factor), risk indicators ✓, grade scenarios ✓ (manual
+  grades; GradeStack feed pending), notifications ✓, Modular AI import ✓
+  (staged confirmation table, deep-link + paste).
+- NOT built (needs sibling APIs — Flashcards/GradeStack are localStorage
+  apps, no contract exists yet; don't fake it):
+  - Flashcards due-card counts beside an exam plan.
+  - GradeStack results feeding course history/review.
+- Timer contract: ours (`?intent&minutes&course&block&return` + file-back)
+  ships and round-trips; spec's `study://` scheme was illustrative.
+- Phase 5 quality: keyboard coverage ✓ (map at `?`), responsive agenda ✓,
+  print ✓. Open: timezone/DST unit tests, a deeper a11y audit pass.
