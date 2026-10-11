@@ -83,7 +83,18 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
       if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) return;
       if (deferFor) return;
       const b = queue[selIdx];
-      if (e.key === 'j') { setSelIdx((i) => clampSel(i + 1)); e.preventDefault(); }
+      const move = (dir: 1 | -1) => {
+        if (!b) return;
+        const ids = queue.map((x) => x.id);
+        const j = selIdx + dir;
+        if (j < 0 || j >= ids.length) return;
+        [ids[selIdx], ids[j]] = [ids[j], ids[selIdx]];
+        s.reorderBlocks(today, ids);
+        setSelIdx(j);
+      };
+      if (e.key === 'J') { move(1); e.preventDefault(); }
+      else if (e.key === 'K') { move(-1); e.preventDefault(); }
+      else if (e.key === 'j') { setSelIdx((i) => clampSel(i + 1)); e.preventDefault(); }
       else if (e.key === 'k') { setSelIdx((i) => clampSel(i - 1)); e.preventDefault(); }
       else if (e.key === 'Enter' && b) onInspect(b.commitmentId);
       else if ((e.key === 'd' || e.key === 'D') && b && b.state !== 'done') s.completeBlock(b.id);
@@ -199,7 +210,7 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
       <section className="mt-7" aria-label="Agenda items">
         <div className="flex items-center justify-between mb-2.5">
           <span className="kicker">AGENDA ITEMS</span>
-          <span className="mono text-[10px] text-[color:var(--color-ink-faint)]">J/K select · D done · X defer · Enter open</span>
+          <span className="mono text-[10px] text-[color:var(--color-ink-faint)]">j/k select · J/K move · D done · X defer · Enter open</span>
         </div>
         {queue.length === 0 ? (
           <div className="slip pl-6 pr-4 py-8 text-center">

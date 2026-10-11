@@ -140,6 +140,17 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
               className="mono"
             />
           </Field>
+          <Field label="Grade" hint="score of 100 — drives §1 scenarios">
+            <FInput
+              type="number"
+              min={0}
+              max={100}
+              value={commitment.grade ?? ''}
+              onChange={(e) => update({ grade: e.target.value === '' ? undefined : Math.min(100, Math.max(0, Number(e.target.value))) })}
+              placeholder="—"
+              className="mono"
+            />
+          </Field>
           <Field label="Estimated effort" hint={`${fmtMinutes(commitment.loggedMinutes)} logged`}>
             <FInput
               type="number"

@@ -390,3 +390,58 @@ export function isoWeekBounds(weekStart: ISODate): { start: Date; end: Date } {
 }
 
 export { toISODate, fromISODate, addDaysISO, daysUntil };
+
+// ── Grade scenarios ──────────────────────────────────────────────────────────
+// Weighted-average standing + "what you need on what's left" math for the
+// syllabus's §1 Evaluation. Grades are 0–100 scores entered manually on filed
+// commitments (GradeStack results arrive as V1 links).
+
+/** Parse a target grade to a percent threshold: numeric strings pass through,
+ *  letter grades map to common US cutoffs. Null when unparseable. */
+export function targetPercent(targetGrade?: string): number | null {
+  if (!targetGrade) return null;
+  const t = targetGrade.trim().toUpperCase();
+  const n = Number(t);
+  if (Number.isFinite(n) && n > 0) return Math.min(100, n);
+  const cutoffs: Record<string, number> = {
+    'A+': 97, A: 93, 'A-': 90,
+    'B+': 87, B: 83, 'B-': 80,
+    'C+': 77, C: 73, 'C-': 70,
+    'D+': 67, D: 63, 'D-': 60,
+  };
+  return cutoffs[t] ?? null;
+}
+
+export interface GradeScenario {
+  gradedWeight: number;    // pts of course weight already graded
+  standing: number;        // weighted average of graded items (0–100)
+  remainingWeight: number; // pts of declared weight still open/ungraded
+  target: number | null;   // parsed target percent
+  needed: number | null;   // avg needed on remainingWeight to hold target
+  secured: boolean;        // needed <= 0
+  reachable: boolean;      // needed <= 100
+}
+
+export function gradeScenario(commitments: Commitment[], targetGrade?: string): GradeScenario | null {
+  const graded = commitments.filter((c) => c.grade != null && c.weight > 0);
+  if (graded.length === 0) return null;
+  const gradedWeight = graded.reduce((s, c) => s + c.weight, 0);
+  const standing = graded.reduce((s, c) => s + c.weight * (c.grade ?? 0), 0) / gradedWeight;
+  const remainingWeight = commitments
+    .filter((c) => c.grade == null && c.weight > 0 && c.status !== 'dropped')
+    .reduce((s, c) => s + c.weight, 0);
+  const target = targetPercent(targetGrade);
+  let needed: number | null = null;
+  if (target != null && remainingWeight > 0) {
+    needed = (target * (gradedWeight + remainingWeight) - standing * gradedWeight) / remainingWeight;
+  }
+  return {
+    gradedWeight,
+    standing,
+    remainingWeight,
+    target,
+    needed,
+    secured: needed != null && needed <= 0,
+    reachable: needed == null || needed <= 100,
+  };
+}

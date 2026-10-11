@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { scoreCommitment, planDay, reversePlan, missedBlocks, estimateRatio } from './schedule';
+import { scoreCommitment, planDay, reversePlan, missedBlocks, estimateRatio, gradeScenario, targetPercent } from './schedule';
 import { todayISO, addDaysISO, isoAtTime } from './utils';
 import type { Commitment, Course, WorkBlock } from './types';
 
@@ -170,5 +170,51 @@ describe('date utils', () => {
     // US DST spring-forward weekend, 2026-03-08
     expect(addDaysISO('2026-03-07', 1)).toBe('2026-03-08');
     expect(addDaysISO('2026-03-08', 1)).toBe('2026-03-09');
+  });
+});
+
+// ── grade scenarios ──
+describe('targetPercent', () => {
+  it('parses letters and numbers', () => {
+    expect(targetPercent('A')).toBe(93);
+    expect(targetPercent('B+')).toBe(87);
+    expect(targetPercent('88')).toBe(88);
+    expect(targetPercent('x')).toBeNull();
+    expect(targetPercent(undefined)).toBeNull();
+  });
+});
+
+describe('gradeScenario', () => {
+  const graded = (id: string, w: number, g: number): Commitment => ({
+    id, courseId: 'c1', type: 'exam', title: id, dueAt: '2026-10-01T23:59', weight: w,
+    estimatedMinutes: 60, loggedMinutes: 0, status: 'done', grade: g, pinned: false,
+    dependencies: [], createdAt: '2026-09-01T00:00',
+  });
+  const open = (id: string, w: number): Commitment => ({
+    id, courseId: 'c1', type: 'exam', title: id, dueAt: '2026-11-01T23:59', weight: w,
+    estimatedMinutes: 60, loggedMinutes: 0, status: 'open', pinned: false,
+    dependencies: [], createdAt: '2026-09-01T00:00',
+  });
+
+  it('computes standing and needed-on-remaining', () => {
+    // 90 on 40 pts, 60 pts open, target A(93): need (93*100 - 90*40)/60 = 95
+    const sc = gradeScenario([graded('a', 40, 90), open('b', 60)], 'A')!;
+    expect(sc.standing).toBe(90);
+    expect(sc.gradedWeight).toBe(40);
+    expect(sc.remainingWeight).toBe(60);
+    expect(sc.needed).toBeCloseTo(95);
+    expect(sc.reachable).toBe(true);
+    expect(sc.secured).toBe(false);
+  });
+
+  it('flags secured and unreachable targets', () => {
+    const secured = gradeScenario([graded('a', 90, 95), open('b', 10)], 'C')!;
+    expect(secured.secured).toBe(true);
+    const lost = gradeScenario([graded('a', 90, 10), open('b', 10)], 'A')!;
+    expect(lost.reachable).toBe(false);
+  });
+
+  it('returns null without graded items', () => {
+    expect(gradeScenario([open('b', 60)], 'A')).toBeNull();
   });
 });

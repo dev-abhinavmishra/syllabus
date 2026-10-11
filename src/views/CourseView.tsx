@@ -5,7 +5,7 @@ import { Field, FInput, FSelect } from '../components/Field';
 import { Stamp } from '../components/Stamp';
 import { QuickAdd } from '../components/QuickAdd';
 import { courseColorVar } from '../lib/colors';
-import { estimateRatio, remainingMinutes, reversePlan } from '../lib/schedule';
+import { estimateRatio, remainingMinutes, reversePlan, gradeScenario } from '../lib/schedule';
 import { resourceDeepLink, appBadge } from '../lib/links';
 import {
   fmtMinutes,
@@ -56,6 +56,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
   const plannedMin = blocks.reduce((sum, b) => sum + b.plannedMinutes, 0);
   const actualMin = blocks.reduce((sum, b) => sum + (b.actualMinutes ?? 0), 0);
   const totalWeight = open.reduce((sum, c) => sum + c.weight, 0);
+  const scenario = gradeScenario(commitments, course.targetGrade);
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-7">
@@ -147,8 +148,37 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                 <td className="slab text-[13.5px]">Actual effort logged</td>
                 <td className="mono text-[11.5px] text-right">{fmtMinutes(actualMin)}</td>
               </tr>
+              {scenario && (
+                <tr>
+                  <td className="slab text-[13.5px]">Current standing</td>
+                  <td className="mono text-[11.5px] text-right">
+                    {scenario.standing.toFixed(1)}% over {scenario.gradedWeight} graded pts
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
+          {scenario?.needed != null && (
+            <p className={cn(
+              'mono text-[10.5px] mt-2',
+              scenario.secured || !scenario.reachable
+                ? 'text-[color:var(--color-ink-soft)]'
+                : scenario.needed > scenario.standing + 5
+                  ? 'text-[color:var(--color-late)]'
+                  : 'text-[color:var(--color-ink-soft)]',
+            )}>
+              {scenario.secured
+                ? `Registrar's scenario: the ${course.targetGrade} is secured — remaining work protects the margin.`
+                : !scenario.reachable
+                  ? `Registrar's scenario: ${course.targetGrade} is no longer reachable on the ${scenario.remainingWeight} pts outstanding — re-file the target or petition.`
+                  : `Registrar's scenario: need ${scenario.needed.toFixed(0)}% average on the ${scenario.remainingWeight} pts outstanding to hold ${course.targetGrade}.`}
+            </p>
+          )}
+          {scenario == null && course.targetGrade && (
+            <p className="mono text-[10.5px] text-[color:var(--color-ink-faint)] mt-2">
+              File grades on returned work to unlock the grade scenario.
+            </p>
+          )}
           {ratio != null && (
             <p className="mono text-[10.5px] text-[color:var(--color-ink-soft)] mt-2">
               Registrar's note: estimates run ×{ratio.toFixed(2)} of actual
@@ -217,7 +247,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                       <td className="mono text-[11px] text-right">{c.weight > 0 ? c.weight : '—'}</td>
                       <td className="mono text-[10.5px] text-right whitespace-nowrap">
                         {filed
-                          ? `${fmtMinutes(c.loggedMinutes)} log`
+                          ? `${c.grade != null ? `${c.grade}% · ` : ''}${fmtMinutes(c.loggedMinutes)} log`
                           : `${fmtMinutes(remainingMinutes(c))} / ${fmtMinutes(c.estimatedMinutes)}`}
                       </td>
                       <td className="text-right no-print">

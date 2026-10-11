@@ -59,6 +59,7 @@ export interface Commitment {
   estimatedMinutes: number; // total remaining effort the student predicts
   loggedMinutes: number; // effort actually recorded against it
   status: CommitmentStatus;
+  grade?: number; // 0–100 score, entered when the work is filed/returned
   pinned: boolean; // user-marked urgency
   dependencies: string[]; // commitment ids that must be done first
   lastWorkedAt?: ISODateTime; // last completed block touching this commitment
