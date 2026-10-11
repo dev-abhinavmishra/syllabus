@@ -281,6 +281,7 @@ body {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-ink-soft);
+  white-space: nowrap;
   padding: 9px 16px 8px;
   border: 1px solid transparent;
   border-bottom: none;
@@ -289,6 +290,12 @@ body {
   top: 1px;
   cursor: pointer;
   transition: color 0.12s, background 0.12s;
+}
+@media (max-width: 639px) {
+  .dtab {
+    padding: 8px 10px 7px;
+    letter-spacing: 0.08em;
+  }
 }
 .dtab:hover {
   color: var(--color-ink);
@@ -314,6 +321,8 @@ body {
   letter-spacing: 0.12em;
   color: rgb(255 255 255 / 0.92);
   padding: 14px 7px;
+  max-height: 168px;
+  overflow: hidden;
   border-radius: 0 5px 5px 0;
   box-shadow: var(--shadow-tab);
   cursor: pointer;

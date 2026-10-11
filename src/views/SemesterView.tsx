@@ -87,7 +87,7 @@ export function SemesterView({
         <section aria-label="Workload by week" className="mb-8">
           <div className="hrule kicker mb-3">DEADLINE DENSITY BY WEEK</div>
           <div className="flex items-end gap-[3px] h-20" role="img" aria-label="Bar chart of remaining effort per week">
-            {weeks.map((w) => {
+            {weeks.map((w, i) => {
               const isCur = todayISO() >= w.week && todayISO() < addDaysISO(w.week, 7);
               return (
                 <div key={w.week} className="flex-1 flex flex-col items-center gap-1 min-w-0" title={`Week of ${stampDate(w.week)} — ${w.due} due, ${fmtMinutes(w.mins)} remaining`}>
@@ -98,8 +98,8 @@ export function SemesterView({
                     )}
                     style={{ height: `${Math.max(3, (w.mins / maxMins) * 52)}px` }}
                   />
-                  <span className={cn('mono text-[8.5px] truncate', isCur ? 'text-[color:var(--color-ink)] font-semibold' : 'text-[color:var(--color-ink-faint)]')}>
-                    {stampDate(w.week).replace(' ', '/')}
+                  <span className={cn('mono text-[8.5px] whitespace-nowrap', isCur ? 'text-[color:var(--color-ink)] font-semibold' : 'text-[color:var(--color-ink-faint)]')}>
+                    {i % Math.max(1, Math.ceil(weeks.length / 8)) === 0 || isCur ? stampDate(w.week).replace(' ', '/') : '·'}
                   </span>
                 </div>
               );

@@ -165,7 +165,7 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
               </span>
             </div>
 
-            <table className="w-full text-left border border-[color:var(--color-rule)]">
+            <div className="overflow-x-auto"><table className="w-full text-left border border-[color:var(--color-rule)]">
               <thead>
                 <tr className="mono text-[9.5px] uppercase tracking-wider text-[color:var(--color-ink-faint)] border-b border-[color:var(--color-rule)]">
                   <th className="px-2 py-1.5 w-8" aria-label="file this row"></th>
@@ -219,7 +219,7 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
 
             <div className="flex items-center gap-2 pb-1">
               <button className="btn" onClick={file} disabled={!checked.length}>

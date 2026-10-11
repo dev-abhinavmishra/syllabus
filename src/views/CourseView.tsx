@@ -129,7 +129,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
             <span className="syl-sec-no">§ 1.</span>
             <span className="kicker !text-[color:var(--color-ink)]">EVALUATION</span>
           </h2>
-          <table className="syl-table mt-2">
+          <div className="overflow-x-auto"><table className="syl-table mt-2">
             <tbody>
               <tr>
                 <td className="slab text-[13.5px]">Target grade</td>
@@ -169,7 +169,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                 </tr>
               )}
             </tbody>
-          </table>
+          </table></div>
           {scenario?.needed != null && (
             <p className={cn(
               'mono text-[10.5px] mt-2',
@@ -221,7 +221,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
               No items on the schedule yet — file the first commitment above.
             </p>
           ) : (
-            <table className="syl-table mt-2">
+            <div className="overflow-x-auto"><table className="syl-table mt-2">
               <thead>
                 <tr>
                   <th className="w-[68px]">Due</th>
@@ -273,7 +273,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           )}
         </section>
 
@@ -294,7 +294,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
               No materials on file — staple Ink notes, Modular AI sources, Flashcards decks, or GradeStack assessments.
             </p>
           ) : (
-            <table className="syl-table mt-2">
+            <div className="overflow-x-auto"><table className="syl-table mt-2">
               <tbody>
                 {links.map((l) => (
                   <tr key={l.id}>
@@ -321,7 +321,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           )}
         </section>
 
