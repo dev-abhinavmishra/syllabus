@@ -25,8 +25,12 @@ Long-running `/loop` build. Read this first when resuming.
   (planned vs actual, slipped resolution, registrar's note).
 - Phase 4 partial: ResourceLinks (staple app resources to courses/commitments),
   Timer deep-link contract (`lib/links.ts`, `docs/TIMER-LINK.md`), inbound
-  `?completedBlock&actual` return handler in `boot()`. **Not done:** Modular AI
-  PDF import, Flashcards due counts, GradeStack results (V1).
+  `?completedBlock&actual` return handler in `boot()`. Modular AI import:
+  `?import=<base64url JSON>` deep-link or Semester → Import paste → staged in
+  `components/ImportSheet.tsx` confirmation table (editable, per-row check;
+  auto-matches existing course by code/name); `lib/import.ts` parses+validates
+  (type/date aliases, clamps, drops bad rows). **Not done:** Flashcards due
+  counts, GradeStack results (V1).
 - Scheduling engine `lib/schedule.ts`: factorized scoring (deadline/effort/
   weight/neglect/pinned/late/dependency) with plain-language reasons on every
   proposal; `planDay`, `reversePlan`, `missedBlocks`, `estimateRatio`.

@@ -17,7 +17,8 @@ import {
 } from '../lib/utils';
 import { remainingMinutes, atRisk } from '../lib/schedule';
 import type { Course, CourseColor } from '../lib/types';
-import { Archive, ArchiveRestore, Plus, BookOpen } from 'lucide-react';
+import { ImportSheet } from '../components/ImportSheet';
+import { Archive, ArchiveRestore, FileDown, Plus, BookOpen } from 'lucide-react';
 
 /**
  * Semester folio — the term's course ledger, workload-by-week density strip,
@@ -35,6 +36,7 @@ export function SemesterView({
   const term = useFolio(selectActiveTerm);
   const courses = useFolio(useShallow(selectTermCourses));
   const [adding, setAdding] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
   const active = courses.filter((c) => !c.archived);
@@ -110,12 +112,18 @@ export function SemesterView({
       <section aria-label="Courses">
         <div className="flex items-center justify-between mb-3">
           <div className="hrule kicker flex-1 mr-4">COURSE LEDGER</div>
-          <button className="btn btn--ghost !py-1.5 !px-3 inline-flex items-center gap-1.5" onClick={() => setAdding((a) => !a)}>
-            <Plus size={13} /> Course
-          </button>
+          <div className="flex gap-2">
+            <button className="btn btn--ghost !py-1.5 !px-3 inline-flex items-center gap-1.5" onClick={() => setImporting(true)} title="Stage a Modular AI extraction for review">
+              <FileDown size={13} /> Import
+            </button>
+            <button className="btn btn--ghost !py-1.5 !px-3 inline-flex items-center gap-1.5" onClick={() => setAdding((a) => !a)}>
+              <Plus size={13} /> Course
+            </button>
+          </div>
         </div>
 
         {adding && <NewCourseForm onDone={() => setAdding(false)} />}
+        {importing && <ImportSheet onClose={() => setImporting(false)} />}
 
         <div className="space-y-4">
           {active.map((c, i) => (

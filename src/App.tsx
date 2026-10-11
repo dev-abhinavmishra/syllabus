@@ -10,6 +10,8 @@ import { CourseView } from './views/CourseView';
 import { ReviewView } from './views/ReviewView';
 import { SettingsView } from './views/SettingsView';
 import { CommitmentDrawer } from './components/CommitmentDrawer';
+import { ImportSheet } from './components/ImportSheet';
+import { parseImportPayload, type ImportPayload } from './lib/import';
 import { Onboarding } from './views/Onboarding';
 import { HelpOverlay } from './components/HelpOverlay';
 import { todayISO, stampDate, dowName } from './lib/utils';
@@ -30,6 +32,21 @@ export function App() {
 
   const [route, setRoute] = useState<RouteState>({ view: 'today' });
   const [helpOpen, setHelpOpen] = useState(false);
+  const [importPayload, setImportPayload] = useState<ImportPayload | null>(null);
+
+  // Inbound Modular AI staging payload: ?import=<base64url JSON> — staged for
+  // review, never committed without the confirmation table.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const q = new URLSearchParams(window.location.search);
+    const raw = q.get('import');
+    if (!raw) return;
+    const res = parseImportPayload(raw);
+    if (res.ok && res.payload) setImportPayload(res.payload);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('import');
+    window.history.replaceState({}, '', url.toString());
+  }, []);
 
   const nav = (patch: Partial<RouteState>) => setRoute((r) => ({ ...r, ...patch }));
   const goView = (view: ViewKey) => setRoute({ view });
@@ -142,6 +159,7 @@ export function App() {
       {inspected && (
         <CommitmentDrawer commitment={inspected} onClose={() => inspect(undefined)} />
       )}
+      {importPayload && <ImportSheet initial={importPayload} onClose={() => setImportPayload(null)} />}
       {helpOpen && <HelpOverlay onClose={() => setHelpOpen(false)} />}
     </div>
   );
