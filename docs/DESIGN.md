@@ -69,3 +69,13 @@ are "suggestions" that always carry their reasoning in plain language
 ("Due in 2 days; 90 min remain", "High-weight exam; no practice logged this
 week"). The student can override everything — the folio proposes, the student
 disposes.
+
+## The living syllabus (design rehaul, Oct 11)
+The app IS the name: every course generates a real syllabus document —
+masthead ("Course Syllabus" + double rules), §-numbered sections
+(§1 Evaluation, §2 Course Schedule, §3 Required Materials), and a print
+view that produces a clean paper syllabus. The Semester folio is a stack
+of issued syllabus covers dealt onto the desk (deal animation, staggered).
+The Today desk is the daily agenda page (¶-numbered items). Rules:
+institutional paperwork only — never lined paper, loose-leaf, or card
+metaphors (Ink owns the notebook look).

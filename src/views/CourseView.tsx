@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { useFolio, selectCourseCommitments, selectLinksFor } from '../store';
+import { useFolio, selectCourseCommitments, selectLinksFor, selectActiveTerm } from '../store';
 import { Field, FInput, FSelect } from '../components/Field';
 import { Stamp } from '../components/Stamp';
 import { QuickAdd } from '../components/QuickAdd';
@@ -15,15 +15,16 @@ import {
   cn,
 } from '../lib/utils';
 import type { CommitmentType, LinkedApp } from '../lib/types';
-import { ExternalLink, Link2, Pin, X } from 'lucide-react';
+import { Archive, ExternalLink, Link2, Pin, Printer, X } from 'lucide-react';
 
 /**
- * Course dossier — the single-course source of truth: every commitment, the
- * resource links stapled to them, grade position, and planned-vs-actual effort
- * calibration.
+ * The living syllabus — the course's own document, kept current by the
+ * registrar: masthead + double rule, § sections (evaluation, course schedule,
+ * required materials, work ledger). Prints like the syllabus it is.
  */
 export function CourseView({ courseId, onInspect }: { courseId: string; onInspect: (id: string) => void }) {
   const s = useFolio();
+  const term = useFolio(selectActiveTerm);
   const course = s.courses[courseId];
   const commitments = useFolio(useShallow((st) => selectCourseCommitments(st, courseId)));
   const links = useFolio(useShallow((st) => selectLinksFor(st, undefined, courseId)));
@@ -43,170 +44,253 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
   if (!course) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-10">
-        <p className="slab text-lg text-[color:var(--color-ink-soft)]">This dossier is empty — the course may have been removed.</p>
+        <p className="slab text-lg text-[color:var(--color-ink-soft)]">This document is missing — the course may have been withdrawn.</p>
       </div>
     );
   }
 
+  const schedule = [...commitments].sort((a, b) => a.dueAt.localeCompare(b.dueAt));
   const open = commitments.filter((c) => c.status === 'open');
   const done = commitments.filter((c) => c.status === 'done');
   const remainMin = open.reduce((sum, c) => sum + remainingMinutes(c), 0);
   const plannedMin = blocks.reduce((sum, b) => sum + b.plannedMinutes, 0);
   const actualMin = blocks.reduce((sum, b) => sum + (b.actualMinutes ?? 0), 0);
+  const totalWeight = open.reduce((sum, c) => sum + c.weight, 0);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
-      {/* dossier cover */}
-      <div className="relative pl-5">
-        <span
-          className="absolute left-0 top-1 bottom-1 w-[10px] rounded-[2px]"
-          style={{ background: courseColorVar(course.color) }}
-          aria-hidden
-        />
-        <div className="kicker mb-1">COURSE DOSSIER</div>
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="slab text-[30px] font-semibold leading-none">
-              <span className="mono text-[15px] font-semibold tracking-[0.08em] align-middle mr-2 text-[color:var(--color-ink-soft)]">
-                {course.code}
-              </span>
-              {course.name}
-            </h1>
-            <p className="text-[13px] text-[color:var(--color-ink-soft)] mt-1.5">
-              {[course.instructor, course.meetingPattern].filter(Boolean).join(' · ')}
-              {course.targetGrade && ` · target ${course.targetGrade}`}
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-7">
+      {/* the syllabus document itself — dealt onto the sheet */}
+      <article
+        className="syl-doc relative pl-7 pr-6 sm:pl-10 sm:pr-9 py-7 animate-[deal_0.4s_cubic-bezier(0.22,0.9,0.3,1)_both]"
+        style={{ background: 'var(--color-slip)', border: '1px solid var(--color-rule)', boxShadow: 'var(--shadow-slip)' }}
+        aria-label={`Syllabus for ${course.code}`}
+      >
+        <span className="absolute left-0 top-0 bottom-0 w-[7px]" style={{ background: courseColorVar(course.color) }} aria-hidden />
+
+        {/* ── masthead ─────────────────────────────────────────── */}
+        <header className="relative">
+          <p className="kicker text-center">{term?.name ?? 'REGISTRAR FOLIO'}</p>
+          <h1 className="slab text-[30px] sm:text-[34px] font-semibold text-center leading-tight mt-1">
+            Course Syllabus
+          </h1>
+          <div className="double-rule mt-4" />
+          <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-1 mono text-[11px]">
+            <div className="flex justify-between gap-3">
+              <dt className="text-[color:var(--color-ink-faint)]">COURSE</dt>
+              <dd className="font-semibold text-right">{course.code}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-[color:var(--color-ink-faint)]">TITLE</dt>
+              <dd className="font-semibold text-right truncate">{course.name}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-[color:var(--color-ink-faint)]">INSTRUCTOR</dt>
+              <dd className="text-right truncate">{course.instructor ?? '—'}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-[color:var(--color-ink-faint)]">MEETINGS</dt>
+              <dd className="text-right truncate">{course.meetingPattern ?? '—'}</dd>
+            </div>
+          </dl>
+          <div className="double-rule mt-3" />
+
+          <div className="no-print absolute top-0 right-0 flex items-start gap-1.5">
+            <button
+              className="xbtn"
+              onClick={() => window.print()}
+              title="Print this syllabus"
+              aria-label="Print this syllabus"
+            >
+              <Printer size={15} />
+            </button>
+            <button
+              className="xbtn"
+              onClick={() => s.archiveCourse(course.id, !course.archived)}
+              title={course.archived ? 'Restore course' : 'Withdraw course'}
+              aria-label={course.archived ? `Restore ${course.code}` : `Withdraw ${course.code}`}
+            >
+              <Archive size={15} />
+            </button>
+          </div>
+          <Stamp
+            text={course.archived ? 'WITHDRAWN' : 'ISSUED'}
+            tone={course.archived ? 'ink' : 'ok'}
+            className="absolute -top-1 right-0 no-print !mt-0 sm:right-14"
+          />
+        </header>
+
+        {/* ── § 1 · Evaluation ─────────────────────────────────── */}
+        <section className="mt-7" aria-label="Evaluation">
+          <h2 className="syl-sec">
+            <span className="syl-sec-no">§ 1.</span>
+            <span className="kicker !text-[color:var(--color-ink)]">EVALUATION</span>
+          </h2>
+          <table className="syl-table mt-2">
+            <tbody>
+              <tr>
+                <td className="slab text-[13.5px]">Target grade</td>
+                <td className="mono text-[11.5px] text-right">{course.targetGrade ?? '—'}</td>
+              </tr>
+              <tr>
+                <td className="slab text-[13.5px]">Grade weight outstanding</td>
+                <td className="mono text-[11.5px] text-right">{totalWeight > 0 ? `${totalWeight} pts` : '—'}</td>
+              </tr>
+              <tr>
+                <td className="slab text-[13.5px]">Estimated effort remaining</td>
+                <td className="mono text-[11.5px] text-right">{fmtMinutes(remainMin)}</td>
+              </tr>
+              <tr>
+                <td className="slab text-[13.5px]">Booked on the desk</td>
+                <td className="mono text-[11.5px] text-right">{fmtMinutes(plannedMin)}</td>
+              </tr>
+              <tr>
+                <td className="slab text-[13.5px]">Actual effort logged</td>
+                <td className="mono text-[11.5px] text-right">{fmtMinutes(actualMin)}</td>
+              </tr>
+            </tbody>
+          </table>
+          {ratio != null && (
+            <p className="mono text-[10.5px] text-[color:var(--color-ink-soft)] mt-2">
+              Registrar's note: estimates run ×{ratio.toFixed(2)} of actual
+              {ratio > 1.15 ? ' — plan bigger blocks.' : ratio < 0.85 ? ' — estimates are generous.' : ' — well calibrated.'}
             </p>
+          )}
+        </section>
+
+        {/* ── § 2 · Course schedule ────────────────────────────── */}
+        <section className="mt-8" aria-label="Course schedule">
+          <div className="syl-sec">
+            <span className="syl-sec-no">§ 2.</span>
+            <span className="kicker !text-[color:var(--color-ink)]">COURSE SCHEDULE</span>
           </div>
-          <Stamp text={course.archived ? 'WITHDRAWN' : 'ACTIVE'} tone={course.archived ? 'ink' : 'ok'} className="mt-2" />
-        </div>
-      </div>
 
-      {/* effort ledger */}
-      <section className="mt-6 grid grid-cols-3 gap-3" aria-label="Effort ledger">
-        {[
-          { k: 'Remaining', v: fmtMinutes(remainMin) },
-          { k: 'Planned', v: fmtMinutes(plannedMin) },
-          { k: 'Logged', v: fmtMinutes(actualMin) },
-        ].map((m) => (
-          <div key={m.k} className="slip !shadow-none pl-4 pr-3 py-2.5">
-            <div className="kicker !text-[9px]">{m.k}</div>
-            <div className="mono text-[19px] font-semibold mt-0.5">{m.v}</div>
+          <div className="no-print mt-3 space-y-3">
+            <QuickAdd courses={[course]} />
+            <div className="flex justify-end">
+              <button className="btn btn--ghost !py-1.5 !px-3" onClick={() => setAdding((a) => !a)}>
+                {adding ? 'Close form' : '+ Commitment'}
+              </button>
+            </div>
+            {adding && <NewCommitmentForm courseId={courseId} onDone={() => setAdding(false)} />}
           </div>
-        ))}
-      </section>
-      {ratio != null && (
-        <p className="mono text-[11px] text-[color:var(--color-ink-soft)] mt-2 pl-1">
-          Calibration: estimates run ×{ratio.toFixed(2)} of actual
-          {ratio > 1.15 ? ' — plan bigger blocks' : ratio < 0.85 ? ' — estimates are generous' : ' — well calibrated'}
-        </p>
-      )}
 
-      {/* commitment register */}
-      <section className="mt-7" aria-label="Commitments">
-        <div className="flex items-center justify-between mb-3">
-          <div className="hrule kicker flex-1 mr-4">COMMITMENT REGISTER</div>
-          <button className="btn btn--ghost !py-1.5 !px-3" onClick={() => setAdding((a) => !a)}>
-            + Commitment
-          </button>
-        </div>
+          {schedule.length === 0 ? (
+            <p className="slab text-[14px] text-[color:var(--color-ink-faint)] mt-3 italic">
+              No items on the schedule yet — file the first commitment above.
+            </p>
+          ) : (
+            <table className="syl-table mt-2">
+              <thead>
+                <tr>
+                  <th className="w-[68px]">Due</th>
+                  <th>Item</th>
+                  <th className="w-[72px]">Type</th>
+                  <th className="w-[44px] text-right">Wt</th>
+                  <th className="w-[92px] text-right">Effort</th>
+                  <th className="w-[64px] text-right no-print">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schedule.map((c) => {
+                  const late = c.status === 'open' && c.dueAt.slice(0, 10) < todayISO();
+                  const filed = c.status === 'done';
+                  return (
+                    <tr
+                      key={c.id}
+                      className={cn('row-hit', late && 'late-row', filed && 'filed-row')}
+                      onClick={() => onInspect(c.id)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onInspect(c.id); } }}
+                      title={`Open ${c.title}`}
+                    >
+                      <td className="mono text-[11px] whitespace-nowrap">
+                        {late ? <span className="font-semibold">LATE&nbsp;{stampDate(c.dueAt.slice(0, 10))}</span> : stampDate(c.dueAt.slice(0, 10))}
+                      </td>
+                      <td className="slab text-[14px] font-medium">
+                        <span className={cn(filed && 'line-through')}>
+                          {c.pinned && <Pin size={11} className="inline -mt-0.5 mr-1 text-[color:var(--color-ink-faint)]" aria-label="Pinned" />}
+                          {c.title}
+                        </span>
+                      </td>
+                      <td className="mono text-[10px] uppercase tracking-[0.08em]">{c.type}</td>
+                      <td className="mono text-[11px] text-right">{c.weight > 0 ? c.weight : '—'}</td>
+                      <td className="mono text-[10.5px] text-right whitespace-nowrap">
+                        {filed
+                          ? `${fmtMinutes(c.loggedMinutes)} log`
+                          : `${fmtMinutes(remainingMinutes(c))} / ${fmtMinutes(c.estimatedMinutes)}`}
+                      </td>
+                      <td className="text-right no-print">
+                        {filed
+                          ? <Stamp text="DONE" tone="ok" className="!text-[7.5px] !border-[1.5px] !px-1 !py-0" />
+                          : late
+                            ? <span className="mono text-[9px] font-semibold text-[color:var(--color-late)]">LATE</span>
+                            : <span className="mono text-[9px] text-[color:var(--color-ink-faint)]">OPEN</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </section>
 
-        <div className="mb-3">
-          <QuickAdd courses={[course]} />
-        </div>
+        {/* ── § 3 · Required materials ─────────────────────────── */}
+        <section className="mt-8" aria-label="Required materials">
+          <div className="syl-sec">
+            <span className="syl-sec-no">§ 3.</span>
+            <span className="kicker !text-[color:var(--color-ink)]">REQUIRED MATERIALS</span>
+            <span className="no-print ml-auto">
+              <button className="btn btn--ghost !py-1 !px-2.5 inline-flex items-center gap-1" onClick={() => setLinking((v) => !v)}>
+                <Link2 size={11} /> Staple
+              </button>
+            </span>
+          </div>
+          {linking && <div className="no-print"><LinkForm courseId={courseId} onDone={() => setLinking(false)} /></div>}
+          {links.length === 0 && !linking ? (
+            <p className="slab text-[13px] text-[color:var(--color-ink-faint)] mt-3 italic">
+              No materials on file — staple Ink notes, Modular AI sources, Flashcards decks, or GradeStack assessments.
+            </p>
+          ) : (
+            <table className="syl-table mt-2">
+              <tbody>
+                {links.map((l) => (
+                  <tr key={l.id}>
+                    <td className="w-[76px]">
+                      <span className="mono text-[9px] font-semibold tracking-[0.1em] border border-[color:var(--color-rule-dark)] rounded-[2px] px-1 py-0.5 text-[color:var(--color-ink-soft)]">
+                        {appBadge(l.app)}
+                      </span>
+                    </td>
+                    <td>
+                      <a
+                        href={l.deepLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="slab text-[14px] hover:underline decoration-1 underline-offset-2 inline-flex items-center gap-1 min-w-0"
+                      >
+                        {l.label} <ExternalLink size={11} className="shrink-0 text-[color:var(--color-ink-faint)] no-print" />
+                      </a>
+                    </td>
+                    <td className="w-[40px] text-right no-print">
+                      <button className="xbtn" onClick={() => s.removeLink(l.id)} aria-label={`Remove ${l.label}`}>
+                        <X size={13} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
 
-        {adding && <NewCommitmentForm courseId={courseId} onDone={() => setAdding(false)} />}
-
-        <ol className="space-y-2">
-          {open.map((c) => {
-            const late = c.dueAt.slice(0, 10) < todayISO();
-            return (
-              <li key={c.id}>
-                <button
-                  onClick={() => onInspect(c.id)}
-                  className="slip w-full text-left pl-6 pr-4 py-3 flex items-center gap-3 group"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="kicker !text-[9px]">{c.type}</span>
-                      {c.pinned && <Pin size={11} className="text-[color:var(--color-ink-soft)]" aria-label="Pinned" />}
-                      {c.weight > 0 && <span className="mono text-[9.5px] text-[color:var(--color-ink-faint)]">w{c.weight}</span>}
-                    </div>
-                    <span className="slab text-[16px] font-medium group-hover:underline decoration-1 underline-offset-2">
-                      {c.title}
-                    </span>
-                    <div className="mono text-[10.5px] text-[color:var(--color-ink-faint)] mt-0.5">
-                      {fmtMinutes(remainingMinutes(c))} of {fmtMinutes(c.estimatedMinutes)} remain
-                    </div>
-                  </div>
-                  <span className={cn('mono text-[11.5px] font-semibold shrink-0', late && 'text-[color:var(--color-late)]')}>
-                    {late ? 'LATE · ' : ''}
-                    {stampDate(c.dueAt.slice(0, 10))}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ol>
-        {open.length === 0 && (
-          <p className="text-[12.5px] text-[color:var(--color-ink-faint)] pl-1 py-3">
-            Register is clear — file a commitment above.
+        {/* ── document footer ──────────────────────────────────── */}
+        <footer className="mt-9">
+          <div className="double-rule" />
+          <p className="mono text-[9.5px] text-[color:var(--color-ink-faint)] text-center mt-2 tracking-[0.1em]">
+            {open.length} ITEM{open.length === 1 ? '' : 'S'} OUTSTANDING · {done.length} FILED · THIS DOCUMENT AMENDS ITSELF AS WORK IS STAMPED
           </p>
-        )}
-
-        {done.length > 0 && (
-          <details className="mt-4">
-            <summary className="mono text-[10.5px] uppercase tracking-[0.12em] text-[color:var(--color-ink-faint)] cursor-pointer hover:text-[color:var(--color-ink-soft)]">
-              Filed away ({done.length})
-            </summary>
-            <ol className="mt-2 space-y-1.5 opacity-70">
-              {done.map((c) => (
-                <li key={c.id} className="flex items-center gap-2 pl-2">
-                  <Stamp text="DONE" tone="ok" className="!text-[8px]" />
-                  <span className="slab text-[13.5px] line-through text-[color:var(--color-ink-soft)]">{c.title}</span>
-                  <span className="mono text-[9.5px] text-[color:var(--color-ink-faint)] ml-auto">{stampDate(c.dueAt.slice(0, 10))}</span>
-                </li>
-              ))}
-            </ol>
-          </details>
-        )}
-      </section>
-
-      {/* stapled resources */}
-      <section className="mt-8" aria-label="Linked resources">
-        <div className="flex items-center justify-between mb-3">
-          <div className="hrule kicker flex-1 mr-4">STAPLED RESOURCES</div>
-          <button className="btn btn--ghost !py-1.5 !px-3 inline-flex items-center gap-1.5" onClick={() => setLinking((v) => !v)}>
-            <Link2 size={12} /> Staple
-          </button>
-        </div>
-        {linking && <LinkForm courseId={courseId} onDone={() => setLinking(false)} />}
-        {links.length === 0 && !linking ? (
-          <p className="text-[12.5px] text-[color:var(--color-ink-faint)] pl-1">
-            Nothing stapled yet — attach Ink notes, Modular AI sources, Flashcards decks, or GradeStack assessments.
-          </p>
-        ) : (
-          <ul className="space-y-1.5">
-            {links.map((l) => (
-              <li key={l.id} className="slip pl-6 pr-3 py-2 flex items-center gap-2.5">
-                <span className="mono text-[9px] font-semibold tracking-[0.1em] border border-[color:var(--color-rule-dark)] rounded-[2px] px-1 py-0.5 text-[color:var(--color-ink-soft)]">
-                  {appBadge(l.app)}
-                </span>
-                <a
-                  href={l.deepLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="slab text-[14px] hover:underline decoration-1 underline-offset-2 flex items-center gap-1 min-w-0 truncate"
-                >
-                  {l.label} <ExternalLink size={11} className="shrink-0 text-[color:var(--color-ink-faint)]" />
-                </a>
-                <button className="xbtn ml-auto" onClick={() => s.removeLink(l.id)} aria-label={`Remove ${l.label}`}>
-                  <X size={13} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        </footer>
+      </article>
     </div>
   );
 }

@@ -111,36 +111,35 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6" ref={listRef}>
-      {/* desk header */}
-      <div className="flex items-end justify-between flex-wrap gap-3 mb-5">
-        <div>
-          <div className="kicker mb-1">EXECUTION DESK</div>
-          <h1 className="slab text-[28px] font-semibold leading-none">{fullDate(today)}</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2">
-            <span className="f-label !mb-0">Available</span>
-            <input
-              type="number"
-              min={0}
-              step={15}
-              value={available}
-              onChange={(e) => setAvailable(Math.max(0, Number(e.target.value) || 0))}
-              className="f-input mono w-[76px] !py-1.5 text-right"
-              aria-label="Available minutes today"
+      {/* agenda page header — the day's sheet torn from the filed syllabi */}
+      <div className="text-center mb-1">
+        <p className="kicker">DAILY AGENDA</p>
+        <h1 className="slab text-[28px] font-semibold leading-tight mt-1">{fullDate(today)}</h1>
+      </div>
+      <div className="double-rule mt-3 mb-4" />
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
+        <label className="flex items-center gap-2">
+          <span className="f-label !mb-0">Hours open</span>
+          <input
+            type="number"
+            min={0}
+            step={15}
+            value={available}
+            onChange={(e) => setAvailable(Math.max(0, Number(e.target.value) || 0))}
+            className="f-input mono w-[76px] !py-1.5 text-right"
+            aria-label="Available minutes today"
+          />
+          <span className="mono text-[11px] text-[color:var(--color-ink-faint)]">min</span>
+        </label>
+        <div className="text-right">
+          <div className="mono text-[11px] text-[color:var(--color-ink-soft)]">
+            {fmtMinutes(doneTotal)} done / {fmtMinutes(plannedTotal)} planned
+          </div>
+          <div className="h-[5px] w-36 bg-[rgb(var(--ink-rgb)/0.08)] rounded-full mt-1 overflow-hidden">
+            <div
+              className="h-full bg-[rgb(var(--ok-rgb)/0.75)] transition-all duration-300"
+              style={{ width: `${plannedTotal > 0 ? Math.min(100, (doneTotal / plannedTotal) * 100) : 0}%` }}
             />
-            <span className="mono text-[11px] text-[color:var(--color-ink-faint)]">min</span>
-          </label>
-          <div className="text-right">
-            <div className="mono text-[11px] text-[color:var(--color-ink-soft)]">
-              {fmtMinutes(doneTotal)} done / {fmtMinutes(plannedTotal)} planned
-            </div>
-            <div className="h-[5px] w-36 bg-[rgb(var(--ink-rgb)/0.08)] rounded-full mt-1 overflow-hidden">
-              <div
-                className="h-full bg-[rgb(var(--ok-rgb)/0.75)] transition-all duration-300"
-                style={{ width: `${plannedTotal > 0 ? Math.min(100, (doneTotal / plannedTotal) * 100) : 0}%` }}
-              />
-            </div>
           </div>
         </div>
       </div>
@@ -196,10 +195,10 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
         </section>
       )}
 
-      {/* ── the queue ── */}
-      <section className="mt-7" aria-label="Planned queue">
+      {/* ── the queue — numbered agenda items ── */}
+      <section className="mt-7" aria-label="Agenda items">
         <div className="flex items-center justify-between mb-2.5">
-          <span className="kicker">PLANNED QUEUE</span>
+          <span className="kicker">AGENDA ITEMS</span>
           <span className="mono text-[10px] text-[color:var(--color-ink-faint)]">J/K select · D done · X defer · Enter open</span>
         </div>
         {queue.length === 0 ? (
@@ -215,19 +214,28 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
             {queue.map((b, i) => {
               const c = s.commitments[b.commitmentId];
               return (
-                <li key={b.id} style={{ animationDelay: `${i * 30}ms` }} className="animate-[slip-in_0.3s_cubic-bezier(0.22,0.9,0.3,1)_both]">
-                  <BlockSlip
-                    block={b}
-                    commitment={c}
-                    course={c ? courseById[c.courseId] : undefined}
-                    selected={i === selIdx}
-                    onSelect={() => setSelIdx(i)}
-                    onStart={b.state !== 'done' ? () => startInTimer(b) : undefined}
-                    onDone={b.state !== 'done' ? () => s.completeBlock(b.id) : undefined}
-                    onDefer={b.state !== 'done' ? () => setDeferFor(b) : undefined}
-                    onInspect={() => onInspect(b.commitmentId)}
-                    onUnstamp={b.state === 'done' ? () => s.unstampBlock(b.id) : undefined}
-                  />
+                <li
+                  key={b.id}
+                  style={{ animationDelay: `${i * 30}ms` }}
+                  className="animate-[slip-in_0.3s_cubic-bezier(0.22,0.9,0.3,1)_both] flex items-baseline gap-2"
+                >
+                  <span className="mono text-[10px] text-[color:var(--color-ink-faint)] w-7 shrink-0 text-right select-none" aria-hidden>
+                    ¶ {i + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <BlockSlip
+                      block={b}
+                      commitment={c}
+                      course={c ? courseById[c.courseId] : undefined}
+                      selected={i === selIdx}
+                      onSelect={() => setSelIdx(i)}
+                      onStart={b.state !== 'done' ? () => startInTimer(b) : undefined}
+                      onDone={b.state !== 'done' ? () => s.completeBlock(b.id) : undefined}
+                      onDefer={b.state !== 'done' ? () => setDeferFor(b) : undefined}
+                      onInspect={() => onInspect(b.commitmentId)}
+                      onUnstamp={b.state === 'done' ? () => s.unstampBlock(b.id) : undefined}
+                    />
+                  </div>
                 </li>
               );
             })}

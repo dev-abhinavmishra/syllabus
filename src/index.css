@@ -60,6 +60,7 @@
   --animate-slip-in: slip-in 0.3s cubic-bezier(0.22, 0.9, 0.3, 1) both;
   --animate-block-slide: block-slide 0.45s cubic-bezier(0.25, 0.8, 0.25, 1) both;
   --animate-sheet-in: sheet-in 0.34s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  --animate-deal: deal 0.4s cubic-bezier(0.22, 0.9, 0.3, 1) both;
 
   @keyframes stamp {
     0% { transform: scale(2.4) rotate(-14deg); opacity: 0; }
@@ -78,6 +79,12 @@
   @keyframes sheet-in {
     from { transform: translateY(10px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
+  }
+  /* paper dealt onto the desk — slight fan, lands once */
+  @keyframes deal {
+    0% { transform: translateY(-16px) rotate(0.8deg); opacity: 0; }
+    70% { transform: translateY(1px) rotate(-0.15deg); opacity: 1; }
+    100% { transform: translateY(0) rotate(0); opacity: 1; }
   }
 }
 
@@ -361,6 +368,65 @@ body {
   color: var(--color-late);
 }
 
+/* ── Syllabus document surfaces ──────────────────────────────────
+   Printed institutional forms: double rules, § sections, ruled
+   schedule tables. Never lined paper — this is office paperwork. */
+.double-rule {
+  border-top: 1px solid var(--color-ink);
+  height: 3px;
+  border-bottom: 1px solid var(--color-ink);
+}
+
+.syl-sec {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.syl-sec-no {
+  font-family: var(--font-slab);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--color-ink);
+  flex-shrink: 0;
+}
+
+/* syllabus schedule table — the classic week/item/weight grid */
+.syl-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.syl-table th {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  text-align: left;
+  padding: 5px 8px;
+  border-bottom: 2px solid var(--color-ink);
+}
+.syl-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--color-rule);
+  vertical-align: top;
+}
+.syl-table tr:last-child td {
+  border-bottom: none;
+}
+.syl-table tr.late-row td {
+  color: var(--color-late);
+}
+.syl-table tr.filed-row td {
+  color: var(--color-ink-faint);
+}
+.syl-table .row-hit {
+  cursor: pointer;
+}
+.syl-table .row-hit:hover td {
+  background: rgb(var(--ink-rgb) / 0.04);
+}
+
 /* ── Focus visibility everywhere (WCAG 2.2) ───────────────────── */
 :focus-visible {
   outline-color: var(--color-ink);
@@ -415,7 +481,7 @@ html[data-motion='reduced'] *::after {
   }
 }
 
-/* ── Print — the folio prints like the forms it imitates ──────── */
+/* ── Print — a syllabus document should print like one ────────── */
 @media print {
   body {
     background: #fff;
@@ -425,6 +491,31 @@ html[data-motion='reduced'] *::after {
   }
   .sheet {
     box-shadow: none;
-    border: 1px solid #ccc;
+    border: none;
+    background: #fff;
+  }
+  .sheet::before {
+    display: none;
+  }
+  main {
+    overflow: visible !important;
+  }
+  .syl-doc {
+    border: none !important;
+    box-shadow: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .syl-doc::after {
+    display: none;
+  }
+  details {
+    display: block;
+  }
+  details > * {
+    display: block;
+  }
+  summary {
+    display: none;
   }
 }

@@ -64,18 +64,19 @@ export function SemesterView({
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
-      {/* term header */}
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <div className="kicker mb-1">SEMESTER FOLIO</div>
-          <h1 className="slab text-[28px] font-semibold leading-none">{term?.name ?? 'No term filed'}</h1>
-          {term && (
-            <p className="mono text-[11px] text-[color:var(--color-ink-soft)] mt-1.5">
-              {fullDate(term.startDate)} → {fullDate(term.endDate)} · {diffDaysISO(term.startDate, term.endDate)} days
-            </p>
-          )}
-        </div>
-        <Stamp text={term ? 'ON FILE' : 'UNFILED'} tone={term ? 'ok' : 'ink'} className="mt-2" />
+      {/* term masthead — the term's cover document */}
+      <div className="text-center mb-2">
+        <p className="kicker">REGISTRAR FOLIO · TERM DOCUMENTS</p>
+        <h1 className="slab text-[30px] font-semibold leading-tight mt-1">{term?.name ?? 'No term filed'}</h1>
+        {term && (
+          <p className="mono text-[10.5px] text-[color:var(--color-ink-soft)] mt-1.5 tracking-[0.08em]">
+            {fullDate(term.startDate)} — {fullDate(term.endDate)} · {diffDaysISO(term.startDate, term.endDate)} DAYS
+          </p>
+        )}
+      </div>
+      <div className="double-rule mb-5" />
+      <div className="flex justify-end -mt-8 mb-5">
+        <Stamp text={term ? 'ON FILE' : 'UNFILED'} tone={term ? 'ok' : 'ink'} />
       </div>
 
       {/* workload strip — deadline density across the term */}
@@ -115,9 +116,11 @@ export function SemesterView({
 
         {adding && <NewCourseForm onDone={() => setAdding(false)} />}
 
-        <div className="space-y-3">
-          {active.map((c) => (
-            <CourseDossierCard key={c.id} course={c} onOpen={() => onOpenCourse(c.id)} onInspect={onInspect} />
+        <div className="space-y-4">
+          {active.map((c, i) => (
+            <div key={c.id} className="animate-[deal_0.4s_cubic-bezier(0.22,0.9,0.3,1)_both]" style={{ animationDelay: `${i * 70}ms` }}>
+              <CourseDossierCard course={c} onOpen={() => onOpenCourse(c.id)} onInspect={onInspect} />
+            </div>
           ))}
         </div>
 
@@ -230,21 +233,26 @@ function CourseDossierCard({
   const lateCount = open.filter((c) => c.dueAt.slice(0, 10) < todayISO()).length;
 
   return (
-    <div className="slip pl-6 pr-4 py-4">
+    <div className="slip pl-7 pr-4 py-4">
       <span className="absolute left-0 top-0 bottom-0 w-[7px]" style={{ background: courseColorVar(course.color) }} aria-hidden />
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-baseline gap-2.5 flex-wrap">
-            <span className="mono text-[12px] font-semibold tracking-[0.08em]">{course.code}</span>
-            <button onClick={onOpen} className="slab text-[19px] font-semibold leading-tight hover:underline decoration-1 underline-offset-[3px] text-left">
-              {course.name}
-            </button>
-          </div>
-          <p className="text-[12px] text-[color:var(--color-ink-soft)] mt-0.5">
-            {[course.instructor, course.meetingPattern].filter(Boolean).join(' · ') || 'No meeting pattern filed'}
-          </p>
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
+      {/* syllabus cover — the issued document's face */}
+      <div className="text-center">
+        <p className="kicker !text-[9px]">COURSE SYLLABUS</p>
+        <button
+          onClick={onOpen}
+          className="slab text-[19px] font-semibold leading-tight hover:underline decoration-1 underline-offset-[3px] mt-0.5"
+        >
+          <span className="mono text-[12px] tracking-[0.06em] mr-2 text-[color:var(--color-ink-soft)]">{course.code}</span>
+          {course.name}
+        </button>
+        <p className="mono text-[10px] text-[color:var(--color-ink-faint)] mt-0.5 tracking-[0.06em]">
+          {[course.instructor, course.meetingPattern].filter(Boolean).join(' · ').toUpperCase() || 'NO MEETING PATTERN FILED'}
+        </p>
+      </div>
+      <div className="double-rule mt-3" />
+      <div className="flex items-center justify-between mt-2">
+        <span className="mono text-[10px] text-[color:var(--color-ink-faint)]">{open.length} open · {done.length} filed</span>
+        <div className="flex items-center gap-1">
           {course.targetGrade && (
             <span className="mono text-[10px] border border-[color:var(--color-rule-dark)] rounded-[3px] px-1.5 py-0.5 text-[color:var(--color-ink-soft)]" title="Target grade">
               → {course.targetGrade}
@@ -261,10 +269,8 @@ function CourseDossierCard({
         </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-4 flex-wrap text-[12px]">
-        <span className="mono text-[color:var(--color-ink-soft)]">
-          {open.length} open · {done.length} filed · {fmtMinutes(remain)} left
-        </span>
+      <div className="mt-2 flex items-center gap-4 flex-wrap text-[12px]">
+        <span className="mono text-[color:var(--color-ink-soft)]">{fmtMinutes(remain)} left</span>
         {lateCount > 0 && (
           <span className="mono text-[color:var(--color-late)] font-semibold">{lateCount} late</span>
         )}
