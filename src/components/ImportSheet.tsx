@@ -68,9 +68,16 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
     if (!payload || !checked.length) return;
     let courseId = target;
     if (target === 'new') {
+      // derive a code from "HIST 140"-style course strings when none is sent —
+      // 'course' is the field Modular AI actually emits.
+      const derived = payload.code
+        ?? (payload.courseName && /[a-zA-Z]{2,}\s?\d/.test(payload.courseName) && payload.courseName.length <= 14
+          ? payload.courseName.toUpperCase()
+          : undefined)
+        ?? 'IMPORT';
       const c = s.addCourse({
         name: payload.courseName || payload.code || 'Imported course',
-        code: payload.code || 'IMPORT',
+        code: derived,
         instructor: payload.instructor,
         meetingPattern: payload.meetingPattern,
         color: 'slate',
