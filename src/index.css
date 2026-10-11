@@ -518,4 +518,9 @@ html[data-motion='reduced'] *::after {
   summary {
     display: none;
   }
+  /* keep the document footer joined to the body — no lone orphan on page 2 */
+  .doc-footer {
+    break-before: avoid-page;
+    break-inside: avoid;
+  }
 }

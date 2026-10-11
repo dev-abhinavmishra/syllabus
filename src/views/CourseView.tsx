@@ -314,7 +314,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
         </section>
 
         {/* ── document footer ──────────────────────────────────── */}
-        <footer className="mt-9">
+        <footer className="doc-footer mt-9">
           <div className="double-rule" />
           <p className="mono text-[9.5px] text-[color:var(--color-ink-faint)] text-center mt-2 tracking-[0.1em]">
             {open.length} ITEM{open.length === 1 ? '' : 'S'} OUTSTANDING · {done.length} FILED · THIS DOCUMENT AMENDS ITSELF AS WORK IS STAMPED

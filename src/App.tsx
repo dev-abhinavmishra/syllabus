@@ -109,7 +109,7 @@ export function App() {
       <div className="flex-1 min-w-0 flex flex-col px-3 py-3 sm:px-5">
         <div className="sheet flex-1 min-h-0 flex flex-col animate-[sheet-in_0.34s_cubic-bezier(0.2,0.8,0.3,1)_both]">
           {/* folio header: divider tabs + the day's date stamp */}
-          <header className="flex items-end justify-between gap-3 px-4 pt-2.5 border-b border-[color:var(--color-rule)]">
+          <header className="no-print flex items-end justify-between gap-3 px-4 pt-2.5 border-b border-[color:var(--color-rule)]">
             <TopTabs view={route.view === 'course' ? 'semester' : route.view} onNav={goView} />
             <div className="hidden sm:flex items-center gap-3 pb-1.5">
               {term && (
