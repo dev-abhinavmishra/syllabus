@@ -12,6 +12,7 @@ import {
   diffDaysISO,
   todayISO,
   weekStartISO,
+  isoAtTime,
   cn,
 } from '../lib/utils';
 import { remainingMinutes } from '../lib/schedule';
@@ -164,10 +165,12 @@ function NewCourseForm({ onDone }: { onDone: () => void }) {
   const [meeting, setMeeting] = useState('');
   const [target, setTarget] = useState('');
   const [color, setColor] = useState<CourseColor>(nextCourseColor(courses.map((c) => c.color)));
+  const [template, setTemplate] = useState<'blank' | 'stem' | 'humanities'>('blank');
+  const term = useFolio(selectActiveTerm);
 
   const file = () => {
     if (!code.trim() && !name.trim()) return;
-    s.addCourse({
+    const course = s.addCourse({
       code: code.trim().toUpperCase() || name.trim().slice(0, 8).toUpperCase(),
       name: name.trim() || code.trim().toUpperCase(),
       instructor: instructor.trim() || undefined,
@@ -175,6 +178,7 @@ function NewCourseForm({ onDone }: { onDone: () => void }) {
       targetGrade: target.trim() || undefined,
       color,
     });
+    if (template !== 'blank' && term) seedTemplate(s, course.id, template, term.startDate);
     onDone();
   };
 
@@ -205,6 +209,13 @@ function NewCourseForm({ onDone }: { onDone: () => void }) {
         </Field>
         <Field label="Target grade">
           <FInput value={target} onChange={(e) => setTarget(e.target.value)} placeholder="A" className="mono" />
+        </Field>
+        <Field label="Template" hint={template === 'blank' ? 'empty syllabus' : 'files starter commitments'} className="sm:col-span-2">
+          <FSelect value={template} onChange={(e) => setTemplate(e.target.value as typeof template)}>
+            <option value="blank">Blank syllabus</option>
+            <option value="stem">STEM course — weekly reading + pset + lab, midterm, final</option>
+            <option value="humanities">Humanities seminar — weekly reading + response, essay, final</option>
+          </FSelect>
         </Field>
       </div>
       <div className="mt-4 flex justify-end gap-2">
@@ -305,4 +316,37 @@ function CourseDossierCard({
       )}
     </div>
   );
+}
+
+// ── Course templates — a starter schedule filed with the course ────────────
+const TEMPLATES = {
+  stem: [
+    { type: 'reading', title: 'Chapter reading', recurrence: 'weekly', weight: 5, minutes: 60, offset: 3 },
+    { type: 'assignment', title: 'Problem set', recurrence: 'weekly', weight: 10, minutes: 90, offset: 5 },
+    { type: 'lab', title: 'Lab writeup', recurrence: 'weekly', weight: 10, minutes: 90, offset: 6 },
+    { type: 'exam', title: 'Midterm exam', weight: 25, minutes: 240, offset: 49 },
+    { type: 'exam', title: 'Final exam', weight: 30, minutes: 300, offset: 98 },
+  ],
+  humanities: [
+    { type: 'reading', title: 'Assigned reading', recurrence: 'weekly', weight: 5, minutes: 75, offset: 2 },
+    { type: 'assignment', title: 'Response paper', recurrence: 'weekly', weight: 10, minutes: 90, offset: 4 },
+    { type: 'project', title: 'Term essay', weight: 30, minutes: 360, offset: 70 },
+    { type: 'exam', title: 'Final exam', weight: 25, minutes: 240, offset: 98 },
+  ],
+} as const;
+
+type TemplateKind = keyof typeof TEMPLATES;
+
+function seedTemplate(s: ReturnType<typeof useFolio.getState>, courseId: string, kind: TemplateKind, termStart: string) {
+  for (const t of TEMPLATES[kind]) {
+    s.addCommitment({
+      courseId,
+      type: t.type,
+      title: t.title,
+      dueAt: isoAtTime(addDaysISO(termStart, t.offset), '23:59'),
+      weight: t.weight,
+      estimatedMinutes: t.minutes,
+      recurrence: 'recurrence' in t ? 'weekly' : undefined,
+    });
+  }
 }

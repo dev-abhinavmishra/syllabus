@@ -60,6 +60,7 @@ export interface Commitment {
   loggedMinutes: number; // effort actually recorded against it
   status: CommitmentStatus;
   grade?: number; // 0–100 score, entered when the work is filed/returned
+  recurrence?: 'weekly'; // filing done spawns the next instance at due+7d
   pinned: boolean; // user-marked urgency
   dependencies: string[]; // commitment ids that must be done first
   lastWorkedAt?: ISODateTime; // last completed block touching this commitment

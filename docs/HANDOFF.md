@@ -52,7 +52,7 @@ Long-running `/loop` build. Read this first when resuming.
 2. ~~Keyboard reorder~~ — DONE: Shift+J/K moves the selected slip.
 3. ~~Grade scenarios~~ — DONE: grade field in drawer + §1 scenario (standing, needed-on-remaining, secured/unreachable).
 4. ~~Notifications~~ — DONE: optional desk reminder (one memo at open, Notification API, never required — Settings toggle).
-5. Course templates + recurring commitments.
+5. ~~Course templates + recurring commitments~~ — DONE: STEM/humanities template select on course filing; weekly recurring spawns next instance on done until term end.
 6. E2E recorded pass on the deployed Vercel app (not just localhost).
 
 ## Design rehaul (Oct 11) — "living syllabus"

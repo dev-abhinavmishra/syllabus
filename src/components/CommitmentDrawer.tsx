@@ -140,6 +140,15 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
               className="mono"
             />
           </Field>
+          <Field label="Repeats" hint="weekly until term end">
+            <FSelect
+              value={commitment.recurrence ?? ''}
+              onChange={(e) => update({ recurrence: e.target.value === 'weekly' ? 'weekly' : undefined })}
+            >
+              <option value="">Does not repeat</option>
+              <option value="weekly">Weekly</option>
+            </FSelect>
+          </Field>
           <Field label="Grade" hint="score of 100 — drives §1 scenarios">
             <FInput
               type="number"

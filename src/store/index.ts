@@ -182,16 +182,39 @@ export const useFolio = create<FolioState>()(
         })),
 
       setCommitmentStatus: (id, status) =>
-        set((s) => ({
-          commitments: {
+        set((s) => {
+          const c = s.commitments[id];
+          if (!c) return s;
+          const commitments = {
             ...s.commitments,
             [id]: {
-              ...s.commitments[id],
+              ...c,
               status,
               completedAt: status === 'done' ? new Date().toISOString() : undefined,
             },
-          },
-        })),
+          };
+          // Recurring filing: done spawns the next weekly instance until the
+          // term's end date — the syllabus keeps its rhythm.
+          if (status === 'done' && c.recurrence === 'weekly') {
+            const term = s.terms[c.courseId ? s.courses[c.courseId]?.termId ?? '' : ''];
+            const nextDue = addDaysISO(c.dueAt.slice(0, 10), 7);
+            if (!term?.endDate || nextDue <= term.endDate) {
+              const next: Commitment = {
+                ...c,
+                id: uid('k_'),
+                dueAt: nextDue + c.dueAt.slice(10),
+                status: 'open',
+                grade: undefined,
+                loggedMinutes: 0,
+                lastWorkedAt: undefined,
+                completedAt: undefined,
+                createdAt: new Date().toISOString(),
+              };
+              commitments[next.id] = next;
+            }
+          }
+          return { commitments };
+        }),
 
       togglePin: (id) =>
         set((s) => ({
