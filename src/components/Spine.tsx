@@ -50,7 +50,7 @@ export function Spine({ term, courses, activeCourseId, onOpenCourse, onOpenSemes
             title={`${c.code} — ${c.name}`}
             aria-current={activeCourseId === c.id ? 'page' : undefined}
           >
-            {c.code.length > 15 ? c.code.slice(0, 14) + '…' : c.code}
+            {c.code.length > 15 ? `${c.code.slice(0, 9)}…${c.code.slice(-3)}` : c.code}
           </button>
         ))}
         {active.length === 0 && (

@@ -208,7 +208,7 @@ export function SettingsView() {
             <p className="text-[12.5px] flex-1">
               Strikes every course, commitment, slip, and review. Export first if the record matters.
             </p>
-            <button className="btn btn--late" onClick={() => { s.resetFolio(); setConfirmReset(false); }}>
+            <button className="btn btn--late" onClick={() => { s.resetFolio(); window.location.reload(); }}>
               Strike it
             </button>
             <button className="btn btn--ghost" onClick={() => setConfirmReset(false)}>Keep</button>

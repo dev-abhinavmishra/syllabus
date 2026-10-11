@@ -102,7 +102,7 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/45 p-0 sm:p-6" role="dialog" aria-modal="true" aria-label="Import commitments">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="Import commitments">
       <div
         ref={ref}
         tabIndex={-1}

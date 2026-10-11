@@ -34,7 +34,7 @@ export function HelpOverlay({ onClose }: { onClose: () => void }) {
       <div
         ref={ref}
         tabIndex={-1}
-        className="sheet max-w-sm w-full p-6 outline-none animate-[slip-in_0.3s_cubic-bezier(0.22,0.9,0.3,1)_both]"
+        className="sheet max-w-sm w-full max-h-[90dvh] overflow-y-auto p-6 outline-none animate-[slip-in_0.3s_cubic-bezier(0.22,0.9,0.3,1)_both]"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.key === 'Escape' && onClose()}
       >

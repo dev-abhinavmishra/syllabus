@@ -225,7 +225,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
               <thead>
                 <tr>
                   <th className="w-[68px]">Due</th>
-                  <th>Item</th>
+                  <th className="min-w-[150px]">Item</th>
                   <th className="w-[72px]">Type</th>
                   <th className="w-[44px] text-right">Wt</th>
                   <th className="w-[92px] text-right">Effort</th>
@@ -249,7 +249,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                       <td className="mono text-[11px] whitespace-nowrap">
                         {late ? <span className="font-semibold">LATE&nbsp;{stampDate(c.dueAt.slice(0, 10))}</span> : stampDate(c.dueAt.slice(0, 10))}
                       </td>
-                      <td className="slab text-[14px] font-medium">
+                      <td className="slab text-[14px] font-medium min-w-[150px]">
                         <span className={cn(filed && 'line-through')}>
                           {c.pinned && <Pin size={11} className="inline -mt-0.5 mr-1 text-[color:var(--color-ink-faint)]" aria-label="Pinned" />}
                           {c.title}
