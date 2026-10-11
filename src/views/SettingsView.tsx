@@ -133,6 +133,33 @@ export function SettingsView() {
               <option value="reduced">Reduced</option>
             </FSelect>
           </Field>
+          <Field
+            label="Desk reminders"
+            hint={
+              !('Notification' in window)
+                ? 'unsupported in this browser'
+                : Notification.permission === 'denied'
+                  ? 'blocked — allow in browser settings'
+                  : 'one memo on open: what’s due in 48h'
+            }
+          >
+            <button
+              type="button"
+              className="btn btn--ghost !py-2 !px-3 w-full text-left"
+              onClick={async () => {
+                if (!('Notification' in window)) return;
+                if (!s.settings.remindersEnabled) {
+                  const p = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+                  s.updateSettings({ remindersEnabled: p === 'granted' });
+                } else {
+                  s.updateSettings({ remindersEnabled: false });
+                }
+              }}
+              aria-pressed={!!s.settings.remindersEnabled}
+            >
+              {s.settings.remindersEnabled ? '● On — memo at open' : '○ Off'}
+            </button>
+          </Field>
         </div>
       </section>
 

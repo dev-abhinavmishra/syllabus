@@ -121,6 +121,7 @@ export const useFolio = create<FolioState>()(
             window.history.replaceState({}, '', url.toString());
           }
         }
+        maybeNotify(get());
       },
 
       hasOnboarded: () => Object.keys(get().courses).length > 0,
@@ -490,4 +491,32 @@ export function selectWeekKey(s: FolioState, date: ISODate): ISODate {
 
 export function commitmentDueISO(c: Commitment): ISODate {
   return c.dueAt.slice(0, 10);
+}
+
+// ── Optional desk reminders (browser Notification API — never required) ─────
+// Fires once per boot when enabled + permission already granted: a single
+// registrar's memo naming what's due inside 48h. No scheduling daemon, no
+// required permission — the folio works fully without it.
+function maybeNotify(s: FolioState) {
+  if (!s.settings.remindersEnabled) return;
+  if (typeof window === 'undefined' || !('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  const today = new Date().toISOString().slice(0, 10);
+  const soon = addDaysISO(today, 2);
+  const open = Object.values(s.commitments).filter((c) => c.status === 'open');
+  const overdue = open.filter((c) => c.dueAt.slice(0, 10) < today).length;
+  const dueSoon = open.filter((c) => {
+    const d = c.dueAt.slice(0, 10);
+    return d >= today && d <= soon;
+  }).length;
+  if (overdue === 0 && dueSoon === 0) return;
+  const parts = [
+    overdue > 0 ? `${overdue} overdue` : '',
+    dueSoon > 0 ? `${dueSoon} due within 48h` : '',
+  ].filter(Boolean).join(' · ');
+  try {
+    new Notification('Syllabus — registrar’s memo', { body: parts, tag: 'syllabus-desk' });
+  } catch {
+    // notifications unavailable in this context — never required
+  }
 }

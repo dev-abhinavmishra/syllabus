@@ -135,6 +135,7 @@ export interface AppSettings {
   defaultAvailableMinutes: number;
   weekStartsOn: 1 | 0; // Monday | Sunday
   motion: 'full' | 'reduced'; // 'reduced' forces reduced-motion off? no: user pref
+  remindersEnabled?: boolean; // optional browser notifications — never required
 }
 
 export interface FolioData {

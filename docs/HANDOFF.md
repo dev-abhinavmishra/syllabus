@@ -49,9 +49,9 @@ Long-running `/loop` build. Read this first when resuming.
 1. ~~Timer-side receiver PR~~ — DONE: dev-abhinavmishra/timer#12 (deeplink.ts
    receiver + "File back → Syllabus" on the completion takeover). E2E-verified
    round-trip: block → Timer context → stamped DONE with actual minutes.
-2. Keyboard reorder of Today queue (alt+j/k or [ ] to move slips).
-3. Grade scenarios (manual current-grade + weight math) in CourseView.
-4. Notifications via optional Notification API reminders (never required).
+2. ~~Keyboard reorder~~ — DONE: Shift+J/K moves the selected slip.
+3. ~~Grade scenarios~~ — DONE: grade field in drawer + §1 scenario (standing, needed-on-remaining, secured/unreachable).
+4. ~~Notifications~~ — DONE: optional desk reminder (one memo at open, Notification API, never required — Settings toggle).
 5. Course templates + recurring commitments.
 6. E2E recorded pass on the deployed Vercel app (not just localhost).
 
