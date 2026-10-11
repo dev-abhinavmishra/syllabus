@@ -106,7 +106,7 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
       <div
         ref={ref}
         tabIndex={-1}
-        className="w-full max-w-3xl max-h-[92vh] overflow-y-auto bg-[color:var(--color-paper)] border border-[color:var(--color-rule)] shadow-2xl outline-none"
+        className="w-full max-w-3xl min-w-0 max-h-[92vh] overflow-y-auto overflow-x-hidden bg-[color:var(--color-paper)] border border-[color:var(--color-rule)] shadow-2xl outline-none"
       >
         <header className="flex items-baseline gap-3 px-5 pt-4 pb-3 border-b border-[color:var(--color-rule)]">
           <FileDown size={15} className="translate-y-0.5 text-[color:var(--color-ink-soft)]" />
