@@ -42,6 +42,11 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
   const filled = useMemo(() => rows.filter((r) => r.code.trim() || r.name.trim()), [rows]);
 
+  const goCourses = () => {
+    setStep('courses');
+    requestAnimationFrame(() => codeRefs.current[0]?.focus());
+  };
+
   const setRow = (i: number, patch: Partial<DraftCourse>) =>
     setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
 
@@ -94,7 +99,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                   autoFocus
                   value={termName}
                   onChange={(e) => setTermName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && setStep('courses')}
+                  onKeyDown={(e) => e.key === 'Enter' && goCourses()}
                   placeholder={guessName}
                 />
               </Field>
@@ -109,7 +114,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
               <span className="mono text-[11px] text-[color:var(--color-ink-faint)]">
                 {stampDate(startDate)} → {stampDate(endDate)}
               </span>
-              <button className="btn inline-flex items-center gap-2" onClick={() => { setStep('courses'); requestAnimationFrame(() => codeRefs.current[0]?.focus()); }}>
+              <button className="btn inline-flex items-center gap-2" onClick={goCourses}>
                 Course ledger <ArrowRight size={13} />
               </button>
             </div>
@@ -117,7 +122,12 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
         )}
 
         {step === 'courses' && (
-          <section aria-label="Course ledger">
+          <section
+            aria-label="Course ledger"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && filled.length > 0) file();
+            }}
+          >
             <div className="hrule kicker mb-5">COURSE LEDGER — {termName.toUpperCase()}</div>
             <p className="text-[12.5px] text-[color:var(--color-ink-soft)] mb-4">
               One row per course. Enter moves down the ledger; the color is the course’s
@@ -174,7 +184,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
               <button className="btn btn--ghost inline-flex items-center gap-1.5" onClick={addRow}>
                 <Plus size={13} /> Add row
               </button>
-              <button className="btn" onClick={file} disabled={filled.length === 0}>
+              <button className="btn" onClick={file} disabled={filled.length === 0} title="⌘/Ctrl+Enter also files">
                 File {filled.length > 0 ? `${filled.length} course${filled.length === 1 ? '' : 's'}` : 'folio'}
               </button>
             </div>

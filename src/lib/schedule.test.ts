@@ -86,6 +86,39 @@ describe('planDay', () => {
     });
     expect(proposals.length).toBe(0);
   });
+
+  it('does not re-propose effort already booked today', () => {
+    const c = mkCommitment({ estimatedMinutes: 90 });
+    const booked: WorkBlock = {
+      id: 'b9', commitmentId: 'k1', plannedDate: todayISO(), plannedStart: '16:00',
+      plannedMinutes: 90, state: 'planned', phase: 'work', reasons: [], score: 0,
+      deferCount: 0, order: 0, createdAt: '2026-01-01T00:00:00Z',
+    };
+    const { proposals } = planDay({
+      today: todayISO(), availableMinutes: 300,
+      commitments: [c], all: { k1: c },
+      courseById: { c1: course }, blocksOnDay: [booked], dismissedIds: new Set(),
+      startTime: '16:00', maxBlock: 90,
+    });
+    expect(proposals.length).toBe(0);
+  });
+
+  it('proposes only the unbooked remainder when part is booked', () => {
+    const c = mkCommitment({ estimatedMinutes: 120 });
+    const booked: WorkBlock = {
+      id: 'b9', commitmentId: 'k1', plannedDate: todayISO(), plannedStart: '16:00',
+      plannedMinutes: 60, state: 'planned', phase: 'work', reasons: [], score: 0,
+      deferCount: 0, order: 0, createdAt: '2026-01-01T00:00:00Z',
+    };
+    const { proposals } = planDay({
+      today: todayISO(), availableMinutes: 300,
+      commitments: [c], all: { k1: c },
+      courseById: { c1: course }, blocksOnDay: [booked], dismissedIds: new Set(),
+      startTime: '16:00', maxBlock: 90,
+    });
+    const total = proposals.reduce((s, p) => s + p.plannedMinutes, 0);
+    expect(total).toBeLessThanOrEqual(60);
+  });
 });
 
 describe('reversePlan', () => {

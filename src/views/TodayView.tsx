@@ -226,13 +226,7 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
                     onDone={b.state !== 'done' ? () => s.completeBlock(b.id) : undefined}
                     onDefer={b.state !== 'done' ? () => setDeferFor(b) : undefined}
                     onInspect={() => onInspect(b.commitmentId)}
-                    onUnstamp={
-                      b.state === 'done'
-                        ? () => useFolio.setState((st) => ({
-                            blocks: { ...st.blocks, [b.id]: { ...b, state: 'planned', actualMinutes: undefined, completedAt: undefined } },
-                          }))
-                        : undefined
-                    }
+                    onUnstamp={b.state === 'done' ? () => s.unstampBlock(b.id) : undefined}
                   />
                 </li>
               );

@@ -223,13 +223,23 @@ export function planDay(opts: {
     }
   }
 
+  // Effort already booked today counts toward the commitment's need — the
+  // registrar never re-proposes work it just scheduled.
+  const bookedToday = new Map<string, number>();
+  for (const b of blocksOnDay) {
+    if (b.state === 'planned' || b.state === 'in-progress') {
+      bookedToday.set(b.commitmentId, (bookedToday.get(b.commitmentId) ?? 0) + b.plannedMinutes);
+    }
+  }
+
   const proposals: ProposedBlock[] = [];
   let unmet = 0;
 
   for (const s of scored) {
     if (budget <= 0) break;
     const c = s.commitment;
-    let remain = remainingMinutes(c);
+    let remain = Math.max(0, remainingMinutes(c) - (bookedToday.get(c.id) ?? 0));
+    if (remain <= 0) continue;
     const late = diffDaysISO(today, dueDateISO(c.dueAt)) < 0;
 
     while (remain > 0 && budget > 0) {

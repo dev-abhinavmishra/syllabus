@@ -7,6 +7,7 @@ const SHORTCUTS: { keys: string; action: string }[] = [
   { keys: 'C', action: 'Calendar' },
   { keys: 'W', action: 'Weekly review' },
   { keys: ',', action: 'Registry settings' },
+  { keys: 'N', action: 'Quick-file a commitment' },
   { keys: 'J / K', action: 'Move block selection (Today)' },
   { keys: 'Enter', action: 'Open selected commitment' },
   { keys: 'D', action: 'Stamp selected block done' },

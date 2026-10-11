@@ -366,8 +366,9 @@ body {
   outline-color: var(--color-ink);
 }
 .sheet :focus-visible {
-  outline: 2px solid var(--color-ink-soft);
-  outline-offset: 1px;
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.18);
 }
 
 /* ── Calendar grid ────────────────────────────────────────────── */

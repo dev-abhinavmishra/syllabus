@@ -64,6 +64,7 @@ interface FolioState extends FolioData {
   addBlock: (b: Omit<WorkBlock, 'id' | 'createdAt' | 'deferCount'>) => WorkBlock;
   rescheduleBlock: (id: string, date: ISODate, startHHMM?: string) => void;
   completeBlock: (id: string, actualMinutes?: number) => void;
+  unstampBlock: (id: string) => void;
   deferBlock: (id: string, note: string, toDate?: ISODate) => void;
   carryBlock: (id: string, toDate: ISODate) => void;
   deleteBlock: (id: string) => void;
@@ -240,7 +241,9 @@ export const useFolio = create<FolioState>()(
       rescheduleBlock: (id, date, startHHMM) =>
         set((s) => {
           const b = s.blocks[id];
-          if (!b) return s;
+          // A stamped slip is a filed record — it never silently un-stamps.
+          // To move it, un-stamp it first so the ledger stays honest.
+          if (!b || b.state === 'done') return s;
           const moved: WorkBlock = {
             ...b,
             plannedDate: date,
@@ -266,6 +269,25 @@ export const useFolio = create<FolioState>()(
                   loggedMinutes: c.loggedMinutes + actual,
                   lastWorkedAt: new Date().toISOString(),
                 },
+              }
+            : s.commitments;
+          return { blocks, commitments };
+        }),
+
+      unstampBlock: (id) =>
+        set((s) => {
+          const b = s.blocks[id];
+          if (!b || b.state !== 'done') return s;
+          const c = s.commitments[b.commitmentId];
+          const actual = b.actualMinutes ?? b.plannedMinutes;
+          const blocks = {
+            ...s.blocks,
+            [id]: { ...b, state: 'planned' as const, actualMinutes: undefined, completedAt: undefined, timerSessionUrl: undefined },
+          };
+          const commitments = c
+            ? {
+                ...s.commitments,
+                [c.id]: { ...c, loggedMinutes: Math.max(0, c.loggedMinutes - actual) },
               }
             : s.commitments;
           return { blocks, commitments };

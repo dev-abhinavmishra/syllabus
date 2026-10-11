@@ -162,16 +162,22 @@ export function CalendarView({ onInspect, today }: { onInspect: (id: string) => 
                   {dayBlocks.map((b) => {
                     const c = commitments[b.commitmentId];
                     const course = c ? courseById[c.courseId] : undefined;
+                    const stamped = b.state === 'done';
                     return (
                       <button
                         key={b.id}
-                        draggable
+                        draggable={!stamped}
                         onDragStart={(e) => {
+                          if (stamped) return;
                           e.dataTransfer.setData('text/block-id', b.id);
                           e.dataTransfer.effectAllowed = 'move';
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (stamped) {
+                            onInspect(b.commitmentId);
+                            return;
+                          }
                           if (moveBlockId === b.id) setMoveBlockId(null);
                           else setMoveBlockId(b.id);
                         }}
@@ -179,16 +185,25 @@ export function CalendarView({ onInspect, today }: { onInspect: (id: string) => 
                           if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
                             e.preventDefault();
                             e.stopPropagation();
-                            moveBlockTo(b.id, addDaysISO(b.plannedDate, e.key === 'ArrowRight' ? 1 : -1));
+                            if (!stamped) moveBlockTo(b.id, addDaysISO(b.plannedDate, e.key === 'ArrowRight' ? 1 : -1));
                           }
                         }}
                         className={cn(
-                          'w-full text-left px-1.5 py-1 rounded-[2px] border border-[color:var(--color-rule)] bg-[color:var(--color-slip)] shadow-[0_1px_2px_rgb(0_0_0/0.1)] cursor-grab active:cursor-grabbing animate-[block-slide_0.45s_cubic-bezier(0.25,0.8,0.25,1)_both]',
+                          'w-full text-left px-1.5 py-1 rounded-[2px] border border-[color:var(--color-rule)] bg-[color:var(--color-slip)] shadow-[0_1px_2px_rgb(0_0_0/0.1)] animate-[block-slide_0.45s_cubic-bezier(0.25,0.8,0.25,1)_both]',
+                          !stamped && 'cursor-grab active:cursor-grabbing',
                           moveBlockId === b.id && 'ring-2 ring-[rgb(var(--ink-rgb)/0.4)]',
-                          b.state === 'done' && 'opacity-60',
+                          stamped && 'opacity-60',
                         )}
-                        title={`${b.plannedStart} · ${c?.title} — drag or select then click a day; ←/→ nudges a day`}
-                        aria-label={`${fmtTime12(b.plannedStart)} ${c?.title ?? ''}. Press left or right to move a day.`}
+                        title={
+                          stamped
+                            ? `${b.plannedStart} · ${c?.title} — stamped; un-stamp on the desk to move`
+                            : `${b.plannedStart} · ${c?.title} — drag or select then click a day; ←/→ nudges a day`
+                        }
+                        aria-label={
+                          stamped
+                            ? `${fmtTime12(b.plannedStart)} ${c?.title ?? ''} — stamped done`
+                            : `${fmtTime12(b.plannedStart)} ${c?.title ?? ''}. Press left or right to move a day.`
+                        }
                       >
                         <span className="block w-[14px] h-[3px] rounded-full mb-0.5" style={{ background: course ? courseColorVar(course.color) : 'var(--color-rule-dark)' }} />
                         <span className="mono text-[9px] block">{b.plannedStart} {fmtMinutes(b.plannedMinutes)}</span>

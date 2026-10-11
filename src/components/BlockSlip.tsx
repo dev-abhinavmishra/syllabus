@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Commitment, Course, WorkBlock } from '../lib/types';
 import { courseColorVar, courseColorRgb } from '../lib/colors';
 import { fmtMinutes, fmtTime12, stampDate, cn } from '../lib/utils';
@@ -38,6 +38,14 @@ export function BlockSlip({
 }: BlockSlipProps) {
   const [stamped, setStamped] = useState(false);
   const done = block.state === 'done';
+
+  // The rubber stamp lands once — whether done was stamped by the ✓ button or
+  // the keyboard — by watching the transition rather than the click.
+  const wasDone = useRef(done);
+  useEffect(() => {
+    if (done && !wasDone.current) setStamped(true);
+    wasDone.current = done;
+  }, [done]);
   const late =
     commitment && commitment.status === 'open' && commitment.dueAt.slice(0, 10) < block.plannedDate;
   const missed = block.state === 'missed' || block.state === 'deferred';
