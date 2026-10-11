@@ -23,7 +23,8 @@ export const APP_BASES: AppBase[] = [
 /**
  * Build the Timer deep link that carries a work block's context.
  * Contract documented in docs/TIMER-LINK.md — Timer reads:
- *   ?intent=<session label>&minutes=<n>&course=<code>&from=syllabus&block=<id>
+ *   ?intent=<session label>&minutes=<n>&course=<code>&from=syllabus&block=<id>&return=<origin>
+ * `return` tells Timer where to file actual minutes on completion.
  */
 export function timerDeepLink(opts: {
   settings: AppSettings;
@@ -40,6 +41,7 @@ export function timerDeepLink(opts: {
   if (course) params.set('course', course.code);
   params.set('from', 'syllabus');
   params.set('block', block.id);
+  if (typeof window !== 'undefined') params.set('return', window.location.origin);
   return `${base}/?${params.toString()}`;
 }
 

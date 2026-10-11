@@ -16,6 +16,7 @@ GET {timerBaseUrl}/?intent=<text>&minutes=<n>&course=<code>&from=syllabus&block=
 | `course` | Course code | Optional chip/preset context |
 | `from` | Always `syllabus` | Marks provenance |
 | `block` | WorkBlock id | Echo back on completion |
+| `return` | Syllabus origin (e.g. `https://syllabus.vercel.app`) | Target for the file-back redirect |
 | `autostart` | `1` = begin immediately | Optional |
 
 ## Return — Timer → Syllabus
