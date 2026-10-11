@@ -106,7 +106,7 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
       <div
         ref={ref}
         tabIndex={-1}
-        className="w-full max-w-3xl max-h-[92vh] overflow-y-auto bg-[color:var(--color-paper)] border border-[color:var(--color-rule)] shadow-2xl outline-none"
+        className="w-full max-w-3xl max-h-[92vh] overflow-y-auto bg-[color:var(--color-stock)] border border-[color:var(--color-rule)] shadow-2xl outline-none"
       >
         <header className="flex items-baseline gap-3 px-5 pt-4 pb-3 border-b border-[color:var(--color-rule)]">
           <FileDown size={15} className="translate-y-0.5 text-[color:var(--color-ink-soft)]" />
@@ -134,7 +134,7 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
               <em> nothing is filed until you confirm it</em>.
             </p>
             <textarea
-              className="w-full h-40 mono text-[11px] p-3 bg-[color:var(--color-card)] border border-[color:var(--color-rule)] focus:outline-none focus:border-[color:var(--color-ink-soft)]"
+              className="w-full h-40 mono text-[11px] p-3 bg-[color:var(--color-form)] border border-[color:var(--color-rule)] focus:outline-none focus:border-[color:var(--color-ink-soft)]"
               placeholder='{"source":"modular","course":"HIST 140","commitments":[{"type":"exam","title":"Midterm","dueAt":"2027-03-04","weight":30,"estimatedMinutes":360}]}'
               value={paste}
               onChange={(e) => setPaste(e.target.value)}
@@ -143,7 +143,7 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
             {err && <p className="mono text-[11px] text-[color:var(--color-late)]">{err}</p>}
             <div className="flex gap-2">
               <button className="btn" onClick={stage} disabled={!paste.trim()}>Stage for review</button>
-              <button className="xbtn" onClick={onClose}>Cancel</button>
+              <button className="btn btn--ghost" onClick={onClose}>Cancel</button>
             </div>
           </div>
         ) : (
@@ -221,12 +221,12 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
               </tbody>
             </table>
 
-            <div className="flex items-center gap-2 pb-1">
-              <button className="btn" onClick={file} disabled={!checked.length}>
+            <div className="flex items-center flex-wrap gap-2 pb-1">
+              <button className="btn whitespace-nowrap" onClick={file} disabled={!checked.length}>
                 File {checked.length} commitment{checked.length === 1 ? '' : 's'}
               </button>
-              <button className="xbtn" onClick={() => setPayload(null)}>Back to paste</button>
-              <button className="xbtn" onClick={onClose}>Discard all</button>
+              <button className="btn btn--ghost whitespace-nowrap" onClick={() => setPayload(null)}>Back to paste</button>
+              <button className="btn btn--ghost whitespace-nowrap" onClick={onClose}>Discard all</button>
             </div>
           </div>
         )}
