@@ -122,11 +122,21 @@ function parseQuick(raw: string, courses: Course[]): Parsed {
   let minutes = 60;
   let pinned = false;
 
-  const courseMatch = rest.match(/@(\w[\w-]*)/i);
-  if (courseMatch) {
-    const code = courseMatch[1].toLowerCase();
-    course = courses.find((c) => c.code.toLowerCase() === code || c.code.toLowerCase().startsWith(code));
-    rest = rest.replace(courseMatch[0], ' ');
+  // longest literal course code first — handles codes containing spaces
+  // ("@biochemistry 401") that the single-token form can't consume.
+  const lit = courses
+    .filter((c) => rest.toLowerCase().includes('@' + c.code.toLowerCase()))
+    .sort((a, b) => b.code.length - a.code.length)[0];
+  if (lit) {
+    course = lit;
+    rest = rest.replace(new RegExp('@' + lit.code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), ' ');
+  } else {
+    const courseMatch = rest.match(/@(\w[\w-]*)/i);
+    if (courseMatch) {
+      const code = courseMatch[1].toLowerCase();
+      course = courses.find((c) => c.code.toLowerCase() === code || c.code.toLowerCase().startsWith(code));
+      rest = rest.replace(courseMatch[0], ' ');
+    }
   }
   const typeMatch = rest.match(/#(\w+)/);
   if (typeMatch) {

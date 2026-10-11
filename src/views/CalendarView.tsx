@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useFolio, selectTermCourses } from '../store';
 import {
@@ -26,6 +26,15 @@ export function CalendarView({ onInspect, today }: { onInspect: (id: string) => 
   const s = useFolio();
   const courses = useFolio(useShallow(selectTermCourses));
   const [mode, setMode] = useState<CalMode>('week');
+
+  // narrow sheets open on the agenda — the week grid collapses below ~sm
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    const apply = () => { if (mq.matches) setMode('agenda'); };
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
   const [anchor, setAnchor] = useState<ISODate>(today);
   const [moveBlockId, setMoveBlockId] = useState<string | null>(null);
 
@@ -118,7 +127,8 @@ export function CalendarView({ onInspect, today }: { onInspect: (id: string) => 
 
       {/* ── week view ── */}
       {mode === 'week' && (
-        <div className="grid grid-cols-7 gap-1.5" role="grid" aria-label="Week">
+        <div className="overflow-x-auto">
+        <div className="grid grid-cols-7 gap-1.5 min-w-[560px]" role="grid" aria-label="Week">
           {weekDays.map((d) => {
             const dayBlocks = blocksByDate.get(d) ?? [];
             const dues = dueByDate.get(d) ?? [];
@@ -234,11 +244,13 @@ export function CalendarView({ onInspect, today }: { onInspect: (id: string) => 
             );
           })}
         </div>
+        </div>
       )}
 
       {/* ── month view — deadline density ── */}
       {mode === 'month' && (
-        <div className="grid grid-cols-7 gap-1" role="grid" aria-label="Month">
+        <div className="overflow-x-auto">
+        <div className="grid grid-cols-7 gap-1 min-w-[560px]" role="grid" aria-label="Month">
           {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((d) => (
             <div key={d} className="kicker !text-[9px] text-center py-1">{d}</div>
           ))}
@@ -280,6 +292,7 @@ export function CalendarView({ onInspect, today }: { onInspect: (id: string) => 
               </button>
             );
           })}
+        </div>
         </div>
       )}
 

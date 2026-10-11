@@ -129,7 +129,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
             <span className="syl-sec-no">§ 1.</span>
             <span className="kicker !text-[color:var(--color-ink)]">EVALUATION</span>
           </h2>
-          <table className="syl-table mt-2">
+          <div className="overflow-x-auto"><table className="syl-table mt-2">
             <tbody>
               <tr>
                 <td className="slab text-[13.5px]">Target grade</td>
@@ -169,7 +169,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                 </tr>
               )}
             </tbody>
-          </table>
+          </table></div>
           {scenario?.needed != null && (
             <p className={cn(
               'mono text-[10.5px] mt-2',
@@ -221,11 +221,11 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
               No items on the schedule yet — file the first commitment above.
             </p>
           ) : (
-            <table className="syl-table mt-2">
+            <div className="overflow-x-auto"><table className="syl-table mt-2">
               <thead>
                 <tr>
                   <th className="w-[68px]">Due</th>
-                  <th>Item</th>
+                  <th className="min-w-[150px]">Item</th>
                   <th className="w-[72px]">Type</th>
                   <th className="w-[44px] text-right">Wt</th>
                   <th className="w-[92px] text-right">Effort</th>
@@ -249,7 +249,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                       <td className="mono text-[11px] whitespace-nowrap">
                         {late ? <span className="font-semibold">LATE&nbsp;{stampDate(c.dueAt.slice(0, 10))}</span> : stampDate(c.dueAt.slice(0, 10))}
                       </td>
-                      <td className="slab text-[14px] font-medium">
+                      <td className="slab text-[14px] font-medium min-w-[150px]">
                         <span className={cn(filed && 'line-through')}>
                           {c.pinned && <Pin size={11} className="inline -mt-0.5 mr-1 text-[color:var(--color-ink-faint)]" aria-label="Pinned" />}
                           {c.title}
@@ -273,7 +273,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           )}
         </section>
 
@@ -294,7 +294,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
               No materials on file — staple Ink notes, Modular AI sources, Flashcards decks, or GradeStack assessments.
             </p>
           ) : (
-            <table className="syl-table mt-2">
+            <div className="overflow-x-auto"><table className="syl-table mt-2">
               <tbody>
                 {links.map((l) => (
                   <tr key={l.id}>
@@ -321,7 +321,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           )}
         </section>
 
