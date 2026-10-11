@@ -46,11 +46,17 @@ Long-running `/loop` build. Read this first when resuming.
 
 ## Next loop priorities
 
-1. Timer-side receiver PR (dev-abhinavmishra/timer): parse `?intent&minutes&
-   course&from&block`, prefill intent+minutes, on session end redirect back
-   `?completedBlock=<id>&actual=<min>` — closes the effort-calibration loop.
+1. ~~Timer-side receiver PR~~ — DONE: dev-abhinavmishra/timer#12 (deeplink.ts
+   receiver + "File back → Syllabus" on the completion takeover). E2E-verified
+   round-trip: block → Timer context → stamped DONE with actual minutes.
 2. Keyboard reorder of Today queue (alt+j/k or [ ] to move slips).
 3. Grade scenarios (manual current-grade + weight math) in CourseView.
 4. Notifications via optional Notification API reminders (never required).
 5. Course templates + recurring commitments.
 6. E2E recorded pass on the deployed Vercel app (not just localhost).
+
+## Design rehaul (Oct 11) — "living syllabus"
+CourseView is now the course's own syllabus document (masthead, double rules,
+§ sections, ruled schedule table, print view); SemesterView shows issued
+syllabus covers dealt onto the desk; Today desk is the agenda page with
+¶-numbered items. Institutional paperwork only — Ink owns the notebook look.
