@@ -53,7 +53,8 @@ Long-running `/loop` build. Read this first when resuming.
 3. ~~Grade scenarios~~ — DONE: grade field in drawer + §1 scenario (standing, needed-on-remaining, secured/unreachable).
 4. ~~Notifications~~ — DONE: optional desk reminder (one memo at open, Notification API, never required — Settings toggle).
 5. ~~Course templates + recurring commitments~~ — DONE: STEM/humanities template select on course filing; weekly recurring spawns next instance on done until term end.
-6. E2E recorded pass on the deployed Vercel app (not just localhost).
+6. ~~Risk indicators~~ — DONE: `riskReason`/`atRisk` (fit-days>days-left, ≤3d+effort, high-weight neglected); §1 "At risk" row + cover count, neutral ink (red stays late-only).
+7. E2E recorded pass on the deployed Vercel app (not just localhost).
 
 ## Design rehaul (Oct 11) — "living syllabus"
 CourseView is now the course's own syllabus document (masthead, double rules,

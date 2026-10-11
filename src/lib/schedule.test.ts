@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { scoreCommitment, planDay, reversePlan, missedBlocks, estimateRatio, gradeScenario, targetPercent } from './schedule';
+import { scoreCommitment, planDay, reversePlan, missedBlocks, estimateRatio, gradeScenario, targetPercent, riskReason } from './schedule';
 import { todayISO, addDaysISO, isoAtTime } from './utils';
 import type { Commitment, Course, WorkBlock } from './types';
 
@@ -216,5 +216,33 @@ describe('gradeScenario', () => {
 
   it('returns null without graded items', () => {
     expect(gradeScenario([open('b', 60)], 'A')).toBeNull();
+  });
+});
+
+describe('riskReason / atRisk', () => {
+  it('flags work that cannot fit before its deadline', () => {
+    const c = mkCommitment({ dueAt: '2026-10-15T23:59', estimatedMinutes: 360, loggedMinutes: 0 }); // ~4 fit days, 4d left → not flagged
+    expect(riskReason(c, '2026-10-11', {})).toBeNull();
+    const tight = mkCommitment({ dueAt: '2026-10-13T23:59', estimatedMinutes: 360, loggedMinutes: 0 }); // 4 fit days > 2d left
+    expect(riskReason(tight, '2026-10-11', {})).toMatch(/work days needed/);
+  });
+  it('flags imminent deadlines with effort remaining', () => {
+    const c = mkCommitment({ dueAt: '2026-10-12T23:59', estimatedMinutes: 60, loggedMinutes: 0 });
+    expect(riskReason(c, '2026-10-11', {})).toMatch(/due in 1d/);
+  });
+  it('flags high-weight neglected work; stays quiet on small recent work', () => {
+    const c = mkCommitment({ dueAt: '2026-10-30T23:59', weight: 25, createdAt: '2026-10-01T00:00' });
+    expect(riskReason(c, '2026-10-11', {})).toMatch(/never started/);
+    const small = mkCommitment({ dueAt: '2026-10-30T23:59', weight: 5, createdAt: '2026-10-01T00:00' });
+    expect(riskReason(small, '2026-10-11', {})).toBeNull();
+    const touched = mkCommitment({ dueAt: '2026-10-30T23:59', weight: 25, lastWorkedAt: '2026-10-10T00:00' });
+    expect(riskReason(touched, '2026-10-11', {})).toBeNull();
+  });
+  it('skips late (red row says it) and dependency-blocked work', () => {
+    const late = mkCommitment({ dueAt: '2026-10-05T23:59', estimatedMinutes: 500 });
+    expect(riskReason(late, '2026-10-11', {})).toBeNull();
+    const gate = mkCommitment({ id: 'k_gate', status: 'open' });
+    const blocked = mkCommitment({ dueAt: '2026-10-12T23:59', dependencies: ['k_gate'] });
+    expect(riskReason(blocked, '2026-10-11', { k_gate: gate })).toBeNull();
   });
 });

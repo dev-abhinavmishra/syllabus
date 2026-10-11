@@ -5,7 +5,7 @@ import { Field, FInput, FSelect } from '../components/Field';
 import { Stamp } from '../components/Stamp';
 import { QuickAdd } from '../components/QuickAdd';
 import { courseColorVar } from '../lib/colors';
-import { estimateRatio, remainingMinutes, reversePlan, gradeScenario } from '../lib/schedule';
+import { estimateRatio, remainingMinutes, reversePlan, gradeScenario, atRisk } from '../lib/schedule';
 import { resourceDeepLink, appBadge } from '../lib/links';
 import {
   fmtMinutes,
@@ -41,6 +41,8 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
     [s.blocks, courseId, s.commitments],
   );
 
+  const all = useFolio((st) => st.commitments);
+
   if (!course) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-10">
@@ -57,6 +59,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
   const actualMin = blocks.reduce((sum, b) => sum + (b.actualMinutes ?? 0), 0);
   const totalWeight = open.reduce((sum, c) => sum + c.weight, 0);
   const scenario = gradeScenario(commitments, course.targetGrade);
+  const risks = atRisk(open, todayISO(), all);
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-7">
@@ -140,6 +143,15 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                 <td className="slab text-[13.5px]">Estimated effort remaining</td>
                 <td className="mono text-[11.5px] text-right">{fmtMinutes(remainMin)}</td>
               </tr>
+              {risks.length > 0 && (
+                <tr title={risks.map((r) => `${r.commitment.title} — ${r.reason}`).join('\n')}>
+                  <td className="slab text-[13.5px]">At risk</td>
+                  <td className="mono text-[11.5px] text-right">
+                    {risks.length} item{risks.length === 1 ? '' : 's'}
+                    <span className="text-[color:var(--color-ink-faint)]"> — {risks[0].reason}</span>
+                  </td>
+                </tr>
+              )}
               <tr>
                 <td className="slab text-[13.5px]">Booked on the desk</td>
                 <td className="mono text-[11.5px] text-right">{fmtMinutes(plannedMin)}</td>

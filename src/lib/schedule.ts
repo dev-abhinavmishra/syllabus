@@ -14,6 +14,7 @@ import {
   toISODate,
   clamp,
   roundTo,
+  fmtMinutes,
 } from './utils';
 
 export interface ScoreFactor {
@@ -444,4 +445,39 @@ export function gradeScenario(commitments: Commitment[], targetGrade?: string): 
     secured: needed != null && needed <= 0,
     reachable: needed == null || needed <= 100,
   };
+}
+
+// ── Risk indicators ─────────────────────────────────────────────────────────
+// Plain-language verdict on an open commitment: deadline + unfinished effort
+// + grade weight + recent neglect. Late work is surfaced separately (red row)
+// — this flags work that can still be saved.
+export function riskReason(c: Commitment, today: ISODate, all: Record<string, Commitment>): string | null {
+  if (c.status !== 'open') return null;
+  const remain = remainingMinutes(c);
+  if (remain <= 0) return null;
+  const due = dueDateISO(c.dueAt);
+  const dUntil = diffDaysISO(today, due);
+  if (dUntil < 0) return null; // already late — the red row says it
+
+  if (isBlocked(c, all)) return null; // the dependency hold explains itself
+
+  const daysLeft = Math.max(dUntil, 0);
+  const fitDays = Math.ceil(remain / 90);
+  if (daysLeft > 0 && fitDays > daysLeft) {
+    return `~${fitDays} work days needed, ${daysLeft}d left`;
+  }
+  if (daysLeft <= 3) {
+    return `due in ${daysLeft}d with ${fmtMinutes(remain)} left`;
+  }
+  const idle = c.lastWorkedAt ? diffDaysISO(c.lastWorkedAt.slice(0, 10), today) : diffDaysISO(c.createdAt.slice(0, 10), today);
+  if (c.weight >= 20 && idle >= 5) {
+    return `weight ${c.weight} · ${c.lastWorkedAt ? `untouched ${idle}d` : 'never started'}`;
+  }
+  return null;
+}
+
+export function atRisk(cs: Commitment[], today: ISODate, all: Record<string, Commitment>): { commitment: Commitment; reason: string }[] {
+  return cs
+    .map((c) => ({ commitment: c, reason: riskReason(c, today, all) }))
+    .filter((x): x is { commitment: Commitment; reason: string } => x.reason !== null);
 }

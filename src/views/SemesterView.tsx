@@ -15,7 +15,7 @@ import {
   isoAtTime,
   cn,
 } from '../lib/utils';
-import { remainingMinutes } from '../lib/schedule';
+import { remainingMinutes, atRisk } from '../lib/schedule';
 import type { Course, CourseColor } from '../lib/types';
 import { Archive, ArchiveRestore, Plus, BookOpen } from 'lucide-react';
 
@@ -242,6 +242,7 @@ function CourseDossierCard({
   const remain = open.reduce((sum, c) => sum + remainingMinutes(c), 0);
   const nextDue = open.filter((c) => remainingMinutes(c) > 0).sort((a, b) => a.dueAt.localeCompare(b.dueAt))[0];
   const lateCount = open.filter((c) => c.dueAt.slice(0, 10) < todayISO()).length;
+  const risks = atRisk(open, todayISO(), s.commitments);
 
   return (
     <div className="slip pl-7 pr-4 py-4">
@@ -284,6 +285,11 @@ function CourseDossierCard({
         <span className="mono text-[color:var(--color-ink-soft)]">{fmtMinutes(remain)} left</span>
         {lateCount > 0 && (
           <span className="mono text-[color:var(--color-late)] font-semibold">{lateCount} late</span>
+        )}
+        {risks.length > 0 && (
+          <span className="mono text-[color:var(--color-ink-soft)]" title={risks.map((r) => `${r.commitment.title} — ${r.reason}`).join('\n')}>
+            {risks.length} at risk
+          </span>
         )}
         {nextDue && (
           <span className="mono text-[color:var(--color-ink-faint)]">
